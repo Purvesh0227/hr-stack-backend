@@ -3,6 +3,10 @@ package com.hrstack.hr_stack.repository;
 import com.hrstack.hr_stack.entity.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface EmployeeRepository extends JpaRepository<Employee, String> {
+import java.util.Optional;
+import java.util.UUID;
+
+public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
+    Optional<Employee> findByEmail(String email);
 
 }

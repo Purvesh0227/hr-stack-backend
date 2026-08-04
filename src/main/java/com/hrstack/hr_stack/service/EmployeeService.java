@@ -3,6 +3,7 @@ package com.hrstack.hr_stack.service;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,15 +14,37 @@ public class EmployeeService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
     public Employee registerEmployee(Employee employee) {
 
-        long count = employeeRepository.count() + 1;
-        employee.setId("EMP-" + String.format("%03d", count));
+        employee.setPassword(encoder.encode(employee.getPassword()));
 
         return employeeRepository.save(employee);
     }
 
+    public Employee login(String email, String password){
+        Employee employee = employeeRepository
+                .findByEmail(email)
+                .orElseThrow(
+                        () -> new RuntimeException("Enter Valid Email")
+                );
+
+        if(!encoder.matches(password, employee.getPassword())){
+            throw new RuntimeException("Enter VAlid Password");
+        }
+        return employee;
+    }
+
+
+
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
+    }
+
+    // finding employee detailsby email
+    public Employee getEmployeeByEmail(String email) {
+        return employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Employee with this email found"));
     }
 }

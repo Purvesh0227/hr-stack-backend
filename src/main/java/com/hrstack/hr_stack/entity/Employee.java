@@ -1,13 +1,23 @@
 package com.hrstack.hr_stack.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
+import java.util.UUID;
+
+
 @Entity
-@Table(name = "employee")
+@Table(name = "employee",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "email"),
+                @UniqueConstraint(columnNames = "mobile")
+        }
+)
 public class Employee {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -21,10 +31,15 @@ public class Employee {
     @Column( name = "mobile",nullable = false)
     private String mobile;
 
+    @Column(nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String password;
+
+
     public Employee() {
     }
 
-    public Employee(String id, String firstName, String lastName, String email, String mobile) {
+    public Employee(UUID id, String firstName, String lastName, String email, String mobile) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -32,11 +47,11 @@ public class Employee {
         this.mobile = mobile;
     }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -70,5 +85,13 @@ public class Employee {
 
     public void setMobile(String mobile) {
         this.mobile = mobile;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
