@@ -1,0 +1,22 @@
+.navbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#2563eb;
+    color:white;
+    padding:18px 50px;
+}
+
+.navbar button{
+    padding:10px 20px;
+    border:none;
+    border-radius:5px;
+    background:white;
+    color:#2563eb;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.navbar button:hover{
+    background:#e5e7eb;
+}

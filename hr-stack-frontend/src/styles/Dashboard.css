@@ -1,0 +1,45 @@
+.dashboard-container{
+    padding:40px;
+}
+
+.welcome-card{
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 0 12px rgba(0,0,0,.12);
+    margin-bottom:30px;
+}
+
+.welcome-card h1{
+    color:#2563eb;
+    margin-bottom:10px;
+}
+
+.details-card{
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 0 12px rgba(0,0,0,.12);
+}
+
+.details-card h2{
+    margin-bottom:20px;
+    color:#333;
+}
+
+.detail-row{
+    display:flex;
+    justify-content:space-between;
+    padding:15px 0;
+    border-bottom:1px solid #ddd;
+    word-break:break-word;
+}
+
+.detail-row span:first-child{
+    font-weight:bold;
+    color:#555;
+}
+
+.detail-row span:last-child{
+    color:#222;
+}
