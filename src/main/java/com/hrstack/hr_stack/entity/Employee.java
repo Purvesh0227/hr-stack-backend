@@ -2,6 +2,8 @@ package com.hrstack.hr_stack.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 import java.util.UUID;
 
@@ -19,18 +21,37 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @NotBlank(message = "First name is required")
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
+    @NotBlank(message = "Last name is required")
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(nullable = false, unique = true)
+    @NotBlank(message = "Email is required")
+    @Pattern(
+            regexp ="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+            message = "invalid email format"
+    )
+    @Column(unique = true)
     private String email;
 
+    @NotBlank(message = "Mobile number is required")
+    @Pattern(
+            regexp = "^[0-9]{10}$",
+            message = "Mobile number must be 10 digits"
+    )
     @Column( name = "mobile",nullable = false)
     private String mobile;
 
+    @NotBlank(message = "Password is required")
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!.*_-]).{8,}$",
+            message = "Password must be at least 8 characters and include an" +
+                    " uppercase letter, a lowercase letter, a digit, and a special character"
+
+    )
     @Column(nullable = false)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;

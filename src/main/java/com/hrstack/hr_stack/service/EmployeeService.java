@@ -7,6 +7,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class EmployeeService {
@@ -39,12 +40,22 @@ public class EmployeeService {
 
 
     public List<Employee> getAllEmployees() {
+
         return employeeRepository.findAll();
     }
 
-    // finding employee detailsby email
+    // finding employee detailsby email (task2)
     public Employee getEmployeeByEmail(String email) {
         return employeeRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Employee with this email found"));
     }
+
+    //get emp by uuid(task3)
+    public Employee getEmployeeById(UUID id){
+        return employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+    }
+
+
+
 }

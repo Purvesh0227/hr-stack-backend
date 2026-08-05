@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/employee")
@@ -35,11 +36,17 @@ public class EmployeeController {
         );
     }
 
-    // to get details of employee by email
+    // to get details of employee by email(task2)
     @GetMapping("/email/{email}")
     public Employee getEmployeeByEmail(@PathVariable String email) {
+
         return employeeService.getEmployeeByEmail(email);
     }
 
+    //to get emp by uuid
+    @GetMapping("/{uuid}")
+    public Employee getEmployeeById(@PathVariable UUID uuid) {
+        return employeeService.getEmployeeById(uuid);
+    }
 
 }
