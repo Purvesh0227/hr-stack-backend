@@ -17,18 +17,30 @@ import java.util.UUID;
 )
 public class Employee {
 
+    //UUID
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    //FirstName
     @NotBlank(message = "First name is required")
+    @Pattern(
+            regexp = "^\\S+$",
+            message = "First name must not contain spaces"
+    )
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
+    //Lastname
     @NotBlank(message = "Last name is required")
+    @Pattern(
+            regexp = "^\\S+$",
+            message = "Last name must not contain spaces"
+    )
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
+    //email
     @NotBlank(message = "Email is required")
     @Pattern(
             regexp ="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
@@ -37,6 +49,7 @@ public class Employee {
     @Column(unique = true)
     private String email;
 
+    //phone
     @NotBlank(message = "Mobile number is required")
     @Pattern(
             regexp = "^[0-9]{10}$",
@@ -45,6 +58,7 @@ public class Employee {
     @Column( name = "mobile",nullable = false)
     private String mobile;
 
+    //password
     @NotBlank(message = "Password is required")
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!.*_-]).{8,}$",
@@ -60,12 +74,14 @@ public class Employee {
     public Employee() {
     }
 
-    public Employee(UUID id, String firstName, String lastName, String email, String mobile) {
+    public Employee(UUID id, String firstName, String lastName, String email, String mobile,String password) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.mobile = mobile;
+        this.password = password;
+
     }
 
     public UUID getId() {

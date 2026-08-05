@@ -3,7 +3,9 @@ package com.hrstack.hr_stack.controller;
 import com.hrstack.hr_stack.dto.LoginRequest;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.service.EmployeeService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +20,7 @@ public class EmployeeController {
 
     //to register employee
     @PostMapping("/register")
-    public Employee registerEmployee(@RequestBody Employee employee) {
+    public Employee registerEmployee(@Valid @RequestBody Employee employee) {
         return employeeService.registerEmployee(employee);
     }
 
