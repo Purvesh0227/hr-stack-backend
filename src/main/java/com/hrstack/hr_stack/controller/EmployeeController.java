@@ -6,13 +6,16 @@ import com.hrstack.hr_stack.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/employee")
+@CrossOrigin(origins = "http://localhost:5173")
 public class EmployeeController {
 
     @Autowired
@@ -51,4 +54,10 @@ public class EmployeeController {
         return employeeService.getEmployeeById(uuid);
     }
 
+    //to delete emp by uuid
+    @DeleteMapping("/{uuid}")
+    public ResponseEntity<Map<String, String>> deleteEmployee(@PathVariable UUID uuid) {
+        employeeService.deleteEmployee(uuid);
+        return ResponseEntity.ok(Map.of("message", "Employee deleted successfully"));
+    }
 }

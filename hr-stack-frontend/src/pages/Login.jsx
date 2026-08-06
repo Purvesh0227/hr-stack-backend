@@ -6,7 +6,6 @@ import "../styles/Login.css";
 function Login() {
 
     const navigate = useNavigate();
-
     const [loginData, setLoginData] = useState({
         email: "",
         password: ""
@@ -19,21 +18,18 @@ function Login() {
         });
     };
 
+    //run when we are going to press login button 
     const handleLogin = async (e) => {
 
         e.preventDefault();
-
         try {
-
             const response = await API.post("/login", loginData);
-
             localStorage.setItem(
                 "employee",
                 JSON.stringify(response.data)
             );
 
             alert("Login Successful");
-
             navigate("/dashboard");
 
         } catch (error) {
@@ -41,19 +37,14 @@ function Login() {
             alert(
                 error.response?.data?.error || "Invalid Credentials"
             );
-
         }
-
     };
 
     return (
 
         <div className="login-container">
-
             <form className="login-card" onSubmit={handleLogin}>
-
                 <h2>Employee Login</h2>
-
                 <input
                     type="email"
                     name="email"
@@ -61,7 +52,6 @@ function Login() {
                     onChange={handleChange}
                     required
                 />
-
                 <input
                     type="password"
                     name="password"
@@ -74,19 +64,14 @@ function Login() {
                     Login
                 </button>
 
-                <p>
-                    Don't have an account?
+                <p>Don't have an account?
                     <Link to="/register">
                         Register
                     </Link>
                 </p>
-
             </form>
-
         </div>
-
     );
-
 }
 
 export default Login;

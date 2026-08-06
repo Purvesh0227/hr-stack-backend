@@ -43,3 +43,31 @@
 .detail-row span:last-child{
     color:#222;
 }
+
+.password-rules{
+    margin-bottom:15px;
+    padding:12px;
+    background:#f8fafc;
+    border-radius:6px;
+    border:1px solid #ddd;
+}
+
+.password-rules p{
+    margin:5px 0;
+    font-size:14px;
+}
+
+.valid{
+    color:green;
+    font-weight:600;
+}
+
+.invalid{
+    color:#d32f2f;
+    font-weight:600;
+}
+
+.register-card button:disabled{
+    background:#9ca3af;
+    cursor:not-allowed;
+}

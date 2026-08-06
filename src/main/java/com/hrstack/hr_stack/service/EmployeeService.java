@@ -56,6 +56,14 @@ public class EmployeeService {
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
     }
 
+    //delete emp by uuid
+    public void deleteEmployee(UUID id) {
+        if (!employeeRepository.existsById(id)) {
+            throw new RuntimeException("Employee not found with id: " + id);
+        }
+        employeeRepository.deleteById(id);
+    }
+
 
 
 }

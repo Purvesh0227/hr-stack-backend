@@ -60,3 +60,29 @@
     color:#2563eb;
     font-weight:bold;
 }
+.register-card button:disabled{
+    background:#9ca3af;
+    cursor:not-allowed;
+}
+
+.register-card button:disabled:hover{
+    background:#9ca3af;
+}
+
+.valid,
+.invalid{
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 4px;
+    margin-bottom: 10px;
+    padding-left: 4px;
+}
+
+.valid{
+    color:#16a34a;
+}
+
+.invalid{
+    color:#dc2626;
+}
