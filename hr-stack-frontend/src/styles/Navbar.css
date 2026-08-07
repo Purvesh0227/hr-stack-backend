@@ -1,22 +1,83 @@
+/* ===========================
+   Navbar
+=========================== */
+
 .navbar{
+    height:65px;
+    background:#ffffff;
     display:flex;
     justify-content:space-between;
     align-items:center;
+    padding:0 35px;
+    box-shadow:0 2px 12px rgba(0,0,0,.08);
+    position:sticky;
+    top:0;
+    z-index:1000;
+}
+
+.navbar-logo h2{
+    margin:0;
+    color:#2563eb;
+    font-size:28px;
+    font-weight:750;
+}
+
+.navbar-right{
+    display:flex;
+    align-items:center;
+    gap:20px;
+}
+
+.user-details{
+    display:inline-flex;
+    flex-direction:column;
+    align-items:flex-end;
+}
+
+.welcome-text{
+    font-size:15px;
+    color:#374151;
+    font-weight:600;
+}
+
+.role-badge{
+    margin-top:4px;
+    padding:4px 10px;
     background:#2563eb;
     color:white;
-    padding:18px 50px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
 }
 
-.navbar button{
-    padding:10px 20px;
+.logout-btn{
+    background:#ef4444;
+    color:white;
     border:none;
-    border-radius:5px;
-    background:white;
-    color:#2563eb;
+    padding:10px 20px;
+    border-radius:10px;
     cursor:pointer;
-    font-weight:bold;
+    font-size:14px;
+    font-weight:600;
+    transition:0.3s;
 }
 
-.navbar button:hover{
-    background:#e5e7eb;
+.logout-btn:hover{
+    background:#dc2626;
+}
+
+@media(max-width:768px){
+
+    .navbar{
+        padding:0 20px;
+    }
+
+    .navbar-logo h2{
+        font-size:22px;
+    }
+
+    .welcome-text{
+        display:none;
+    }
+
 }

@@ -46,13 +46,26 @@ public class EmployeeService {
 
 
     public List<Employee> getAllEmployees(String email){
+
         Employee employee = employeeRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User Not Found"));
 
         if(!"ADMIN".equalsIgnoreCase(employee.getRole())){
             throw new RuntimeException("Access Denied . You are not Admin");
         }
-        return employeeRepository.findAll();
+
+        return employeeRepository.findByRoleIgnoreCase("EMPLOYEE");
+    }
+
+    //get all admins
+
+    public List<Employee> getAllAdmins(String email){
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User Not Found"));
+        if(!"ADMIN".equalsIgnoreCase(employee.getRole())){
+            throw new RuntimeException("Access Denied . You are not Admin");
+        }
+        return employeeRepository.findByRoleIgnoreCase("ADMIN");
     }
 
     // finding employee detailsby email (task2)

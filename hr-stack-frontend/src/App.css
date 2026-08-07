@@ -1,5 +1,7 @@
 @import "./styles/Login.css";
-@import "./styles/Dashboard.css";
-@import "./styles/Navbar.css";
 @import "./styles/Register.css";
+@import "./styles/Navbar.css";
+@import "./styles/Dashboard.css";
+@import "./styles/Sidebar.css";
+@import "./styles/Footer.css";
 @import "./styles/NotFound.css";
