@@ -1,0 +1,21 @@
+.footer{
+    width:100%;
+    margin-top:0;
+    background:#ffffff;
+    border-top:1px solid #e5e7eb;
+    padding:18px 30px;
+    text-align:center;
+    box-shadow:0 -2px 8px rgba(0,0,0,.05);
+    position: sticky;
+}
+
+.footer-content p{
+    margin:4px 0;
+    color:#6b7280;
+    font-size:14px;
+}
+
+.footer-content p:first-child{
+    font-weight:600;
+    color:#374151;
+}
