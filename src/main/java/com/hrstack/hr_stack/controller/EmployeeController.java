@@ -54,6 +54,11 @@ public class EmployeeController {
         return employeeService.getAllAdmins(email);
     }
 
+    @GetMapping("/adminProfile")
+    public Employee getAdminProfile(@RequestParam String email){
+        return employeeService.getAdminProfile(email);
+    }
+
     @PostMapping("/login")
     public Employee login(@RequestBody LoginRequest request) {
         return employeeService.login(

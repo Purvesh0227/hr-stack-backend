@@ -80,6 +80,15 @@ public class EmployeeService {
         return employeeRepository.findByRoleIgnoreCase("ADMIN");
     }
 
+    public Employee getAdminProfile(String email){
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Admin Not Found"));
+        if(!"ADMIN".equalsIgnoreCase(employee.getRole())){
+            throw new RuntimeException("Access Denied . You are not Admin");
+        }
+        return employee;
+    }
+
     // finding employee detailsby email (task2)
     public Employee getEmployeeByEmail(String email) {
         return employeeRepository.findByEmail(email)

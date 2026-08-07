@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import API from "../services/api";
 import Navbar from "../components/Navbar";
 import AdminSidebar from "../components/AdminSidebar";
@@ -14,6 +14,7 @@ function Dashboard() {
 
     const [employees, setEmployees] = useState([]);
     const [admins, setAdmins] = useState([]);
+    const [adminProfile, setAdminProfile] = useState(null);
     const [activeMenu, setActiveMenu] = useState("dashboard");
     const [showAddAdminModal, setShowAddAdminModal] = useState(false);
 
@@ -40,6 +41,24 @@ function Dashboard() {
             alert(error.response?.data || "Unable to fetch admins");
         }
     };
+
+    const getAdminProfile = async () => {
+    try {
+
+        const response = await API.get("/adminProfile", {
+            params: { email }
+        });
+
+        setAdminProfile(response.data);
+
+    } catch (error) {
+        alert(error.response?.data || "Unable to fetch admin profile");
+    }
+};
+
+    useEffect(() => {
+        getAdminProfile();
+    }, [email]);
 
     return (
         <>
@@ -161,10 +180,23 @@ function Dashboard() {
                         )}
                         {activeMenu === "settings" && (
                             <div className="content-card">
-                                <h2>Settings</h2>
-                                <p>
-                                    Settings page will be added in future.
-                                </p>
+                                <h2>My Profile</h2>
+                                {adminProfile && (
+                                    <div className="profile-details">
+                                        <p>
+                                            <strong>First Name :</strong> {adminProfile.firstName}
+                                        </p>
+                                        <p>
+                                            <strong>Last Name :</strong> {adminProfile.lastName}
+                                        </p>
+                                        <p>
+                                            <strong>Email :</strong> {adminProfile.email}
+                                        </p>
+                                        <p>
+                                            <strong>Role :</strong> {adminProfile.role}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </main>
