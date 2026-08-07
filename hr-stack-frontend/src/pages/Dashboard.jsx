@@ -3,6 +3,7 @@ import API from "../services/api";
 import Navbar from "../components/Navbar";
 import AdminSidebar from "../components/AdminSidebar";
 import Footer from "../components/Footer";
+import AddAdminModal from "../components/AddAdminModal";
 
 
 function Dashboard() {
@@ -14,6 +15,7 @@ function Dashboard() {
     const [employees, setEmployees] = useState([]);
     const [admins, setAdmins] = useState([]);
     const [activeMenu, setActiveMenu] = useState("dashboard");
+    const [showAddAdminModal, setShowAddAdminModal] = useState(false);
 
     const getAllEmployees = async () => {
         try {
@@ -117,97 +119,68 @@ function Dashboard() {
                         )}
 
                         {activeMenu === "admins" && (
-
                             <div className="content-card">
-
                                 <div className="card-header">
-
                                     <h2>Administrators</h2>
-
-                                    <button
-                                        className="primary-btn"
-                                        onClick={getAllAdmins}
-                                    >
-                                        View Admins
-                                    </button>
-
+                                    <div style={{ display: "flex", gap: "10px" }}>
+                                        <button className="primary-btn" onClick={getAllAdmins}>
+                                            View Admins
+                                        </button>
+                                        <button className="primary-btn" onClick={() => setShowAddAdminModal(true)}>
+                                            Add Admin
+                                        </button>
+                                    </div>
                                 </div>
-
                                 {admins.length > 0 && (
-
                                     <table className="employee-table">
-
                                         <thead>
-
                                         <tr>
                                             <th>Name</th>
                                             <th>Email</th>
                                             <th>Mobile</th>
                                             <th>Role</th>
                                         </tr>
-
                                         </thead>
-
                                         <tbody>
-
                                         {admins.map(admin => (
-
                                             <tr key={admin.id}>
                                                 <td>{admin.firstName} {admin.lastName}</td>
                                                 <td>{admin.email}</td>
                                                 <td>{admin.mobile}</td>
                                                 <td>{admin.role}</td>
                                             </tr>
-
                                         ))}
-
                                         </tbody>
-
                                     </table>
-
                                 )}
-
+                            <AddAdminModal isOpen={showAddAdminModal} 
+                                            onClose={() => setShowAddAdminModal(false)} 
+                                            refreshAdmins={getAllAdmins}
+                            />
                             </div>
-
                         )}
-
                         {activeMenu === "settings" && (
-
                             <div className="content-card">
-
                                 <h2>Settings</h2>
-
                                 <p>
                                     Settings page will be added in future.
                                 </p>
-
                             </div>
-
                         )}
-
                     </main>
-
                 </div>
-
             ) : (
-
                 <div className="employee-dashboard">
-
                     <div className="profile-card">
-
                         <h2>My Profile</h2>
-
                         <p><strong>Employee ID:</strong> {employee.id}</p>
                         <p><strong>First Name:</strong> {employee.firstName}</p>
                         <p><strong>Last Name:</strong> {employee.lastName}</p>
                         <p><strong>Email:</strong> {employee.email}</p>
                         <p><strong>Mobile:</strong> {employee.mobile}</p>
                         <p><strong>Role:</strong> {employee.role}</p>
-
                     </div>
-
                 </div>
-
             )}
         <Footer />
         </>

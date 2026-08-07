@@ -34,6 +34,12 @@ public class EmployeeController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+    //create admin
+
+    @PostMapping("/createAdmin")
+    public Employee  createAdmin(@Valid @RequestBody Employee employee) {
+        return employeeService.createAdmin(employee);
+    }
 
     // to get all emplyee details
     @GetMapping("/allEmployees")

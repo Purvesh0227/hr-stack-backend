@@ -29,6 +29,18 @@ public class EmployeeService {
         return employeeRepository.save(employee);
     }
 
+    //create admin
+
+    public Employee createAdmin(Employee employee){
+        if(employeeRepository.existsByEmailIgnoreCase(employee.getEmail())){
+            throw new RuntimeException("Email already exists. Please use another email.");
+        }
+        employee.setPassword(encoder.encode(employee.getPassword()));
+        employee.setRole("ADMIN");
+
+        return employeeRepository.save(employee);
+    }
+
     public Employee login(String email, String password){
         Employee employee = employeeRepository
                 .findByEmail(email)
