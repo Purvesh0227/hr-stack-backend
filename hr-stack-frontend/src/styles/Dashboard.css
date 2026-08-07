@@ -1,73 +1,96 @@
-.dashboard-container{
-    padding:40px;
+.dashboard-container {
+    padding: 40px;
 }
 
-.welcome-card{
-    background:white;
-    padding:30px;
-    border-radius:10px;
-    box-shadow:0 0 12px rgba(0,0,0,.12);
-    margin-bottom:30px;
+.dashboard-container h2 {
+    font-size: 32px;
+    color: #1f2937;
+    margin-bottom: 8px;
 }
 
-.welcome-card h1{
-    color:#2563eb;
-    margin-bottom:10px;
+.dashboard-container h3 {
+    color: #2563eb;
+    margin-bottom: 30px;
 }
 
-.details-card{
-    background:white;
-    padding:30px;
-    border-radius:10px;
-    box-shadow:0 0 12px rgba(0,0,0,.12);
+/* Admin Button */
+
+.admin-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    transition: 0.3s;
 }
 
-.details-card h2{
-    margin-bottom:20px;
-    color:#333;
+.admin-btn:hover {
+    background: #1d4ed8;
 }
 
-.detail-row{
-    display:flex;
-    justify-content:space-between;
-    padding:15px 0;
-    border-bottom:1px solid #ddd;
-    word-break:break-word;
+/* Employee Table */
+
+.employee-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 18px rgba(0,0,0,0.08);
 }
 
-.detail-row span:first-child{
-    font-weight:bold;
-    color:#555;
+.employee-table thead {
+    background: #2563eb;
+    color: white;
 }
 
-.detail-row span:last-child{
-    color:#222;
+.employee-table th,
+.employee-table td {
+    padding: 15px;
+    text-align: left;
 }
 
-.password-rules{
-    margin-bottom:15px;
-    padding:12px;
-    background:#f8fafc;
-    border-radius:6px;
-    border:1px solid #ddd;
+.employee-table tbody tr {
+    border-bottom: 1px solid #e5e7eb;
 }
 
-.password-rules p{
-    margin:5px 0;
-    font-size:14px;
+.employee-table tbody tr:hover {
+    background: #f9fafb;
 }
 
-.valid{
-    color:green;
-    font-weight:600;
+.employee-table th {
+    font-weight: 600;
 }
 
-.invalid{
-    color:#d32f2f;
-    font-weight:600;
+.employee-table td {
+    color: #374151;
 }
 
-.register-card button:disabled{
-    background:#9ca3af;
-    cursor:not-allowed;
+.profile-card {
+    margin-top: 25px;
+    width: 500x;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 18px rgba(0,0,0,0.08);
+}
+
+.profile-card h3 {
+    margin-bottom: 10px;
+    color: #2563eb;
+}
+
+.profile-card p {
+    margin: 12px 0;
+    font-size: 16px;
+    color: #374151;
+}
+
+.profile-card strong {
+    display: inline-block;
+    width: 120px;
 }

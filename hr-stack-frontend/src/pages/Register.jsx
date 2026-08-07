@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../services/api";
-import "../styles/Register.css";
+
 
 function Register() {
 
@@ -73,19 +73,26 @@ function Register() {
         } catch (error) 
         {
 
-            if (error.response && error.response.data) {
+            if (error.response) {
+                if (error.response.data.error) {
+                    alert(error.response.data.error);
+                } 
+                else 
+                {
                 const errors = error.response.data;
                 let message = "";
+
                 for (let key in errors) {
                     message += errors[key] + "\n";
                 }
+    
                 alert(message);
-            } else 
-                {
-
-                alert("Registration Failed");
-
                 }
+
+            } 
+            else {  
+                alert("Registration Failed");
+            }
         }
     };
     return (

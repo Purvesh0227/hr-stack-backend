@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
-import "../styles/Login.css";
+
 
 function Login() {
 
@@ -24,10 +24,9 @@ function Login() {
         e.preventDefault();
         try {
             const response = await API.post("/login", loginData);
-            localStorage.setItem(
-                "employee",
-                JSON.stringify(response.data)
-            );
+            localStorage.setItem("employee",JSON.stringify(response.data));
+            localStorage.setItem("email",response.data.email);
+            localStorage.setItem("role",response.data.role);
 
             alert("Login Successful");
             navigate("/dashboard");

@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 import java.util.Map;
+import java.util.List;
+
 import java.util.UUID;
 
 @RestController
@@ -23,14 +23,24 @@ public class EmployeeController {
 
     //to register employee
     @PostMapping("/register")
-    public Employee registerEmployee(@Valid @RequestBody Employee employee) {
-        return employeeService.registerEmployee(employee);
+    public ResponseEntity<?> registerEmployee(@Valid @RequestBody Employee employee) {
+        try {
+
+            Employee savedEmployee = employeeService.registerEmployee(employee);
+            return ResponseEntity.ok(savedEmployee);
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
     // to get all emplyee details
-    @GetMapping("/all")
-    public List<Employee> getAllEmployees() {
-        return employeeService.getAllEmployees();
+    @GetMapping("/allEmployees")
+    public List<Employee> getAllEmployees(@RequestParam String email) {
+
+        return employeeService.getAllEmployees(email);
+
     }
 
     @PostMapping("/login")

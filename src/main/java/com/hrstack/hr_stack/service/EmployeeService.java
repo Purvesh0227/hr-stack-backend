@@ -18,6 +18,11 @@ public class EmployeeService {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     public Employee registerEmployee(Employee employee) {
+        if (employeeRepository.existsByEmailIgnoreCase(employee.getEmail())) {
+            throw new RuntimeException("Email already exists. Please use another email.");
+        }
+
+        employee.setRole("EMPLOYEE");
 
         employee.setPassword(encoder.encode(employee.getPassword()));
 
@@ -39,8 +44,14 @@ public class EmployeeService {
 
 
 
-    public List<Employee> getAllEmployees() {
 
+    public List<Employee> getAllEmployees(String email){
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User Not Found"));
+
+        if(!"ADMIN".equalsIgnoreCase(employee.getRole())){
+            throw new RuntimeException("Access Denied . You are not Admin");
+        }
         return employeeRepository.findAll();
     }
 

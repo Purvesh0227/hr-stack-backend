@@ -6,6 +6,9 @@ function Navbar() {
 
     const handleLogout = () => {
         localStorage.removeItem("employee");
+        localStorage.removeItem("email");
+        localStorage.removeItem("role");
+        alert("Logout Successful");
         navigate("/login");
 
     };

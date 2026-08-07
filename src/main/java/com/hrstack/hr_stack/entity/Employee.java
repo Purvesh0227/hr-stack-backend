@@ -71,16 +71,20 @@ public class Employee {
     private String password;
 
 
+    //Role
+    private String role;
+
     public Employee() {
     }
 
-    public Employee(UUID id, String firstName, String lastName, String email, String mobile,String password) {
+    public Employee(UUID id, String firstName, String lastName, String email, String mobile,String password,String role) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.mobile = mobile;
         this.password = password;
+        this.role = role;
 
     }
 
@@ -130,5 +134,13 @@ public class Employee {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
