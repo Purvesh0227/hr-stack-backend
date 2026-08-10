@@ -9,12 +9,6 @@ function AdminSidebar({ activeMenu, setActiveMenu, role }) {
         <aside className="sidebar">
 
             <div className="logo-section">
-                <h2>HR-Stack</h2>
-                <p>
-                    {role === "ADMIN"
-                        ? "Admin Dashboard"
-                        : "Employee Dashboard"}
-                </p>
             </div>
 
             <nav className="sidebar-menu">

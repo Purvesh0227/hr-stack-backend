@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createAdmin } from "../services/api";
+import { isValidEmail, isValidPhone, getPasswordChecks } from "../utils/validators";
 
 function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
 
@@ -19,38 +20,72 @@ function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+    e.preventDefault();
 
-        try {
+    if (!/^\S+$/.test(adminData.firstName)) {
+        alert("First name must not contain spaces");
+        return;
+    }
 
-            await createAdmin(adminData);
+    if (!/^\S+$/.test(adminData.lastName)) {
+        alert("Last name must not contain spaces");
+        return;
+    }
 
-            alert("Admin created successfully");
+    if (!isValidEmail(adminData.email)) {
+        alert("Please enter a valid email");
+        return;
+    }
 
-            refreshAdmins();
+    if (!isValidPhone(adminData.mobile)) {
+        alert("Mobile number must contain exactly 10 digits");
+        return;
+    }
 
-            setAdminData({
-                firstName: "",
-                lastName: "",
-                email: "",
-                mobile: "",
-                password: ""
-            });
+    const passwordChecks = getPasswordChecks(adminData.password);
 
-            onClose();
+    if (
+        !passwordChecks.hasMinLength ||
+        !passwordChecks.hasUpperCase ||
+        !passwordChecks.hasLowerCase ||
+        !passwordChecks.hasNumber ||
+        !passwordChecks.hasSpecial
+    ) {
+        alert(
+            "Password must be at least 8 characters and include uppercase, lowercase, number and special character"
+        );
+        return;
+    }
 
-        } catch (error) 
-        {
-            console.log(error.response);
-            if (error.response?.data?.errors) {
-                alert(error.response.data.errors.join("\n"));
-            } else if (error.response?.data?.message) {
-                alert(error.response.data.message);
-            } else {
-                alert(JSON.stringify(error.response?.data));
-            }
+    try {
+        await API.post("/createAdmin", adminData);
+
+        alert("Admin created successfully");
+
+        refreshAdmins();
+
+        setAdminData({
+            firstName: "",
+            lastName: "",
+            email: "",
+            mobile: "",
+            password: ""
+        });
+
+        onClose();
+
+    } catch (error) {
+        console.log(error.response);
+
+        if (error.response?.data?.errors) {
+            alert(error.response.data.errors.join("\n"));
+        } else if (error.response?.data?.message) {
+            alert(error.response.data.message);
+        } else {
+            alert(JSON.stringify(error.response?.data));
         }
-    };
+    }
+};
 
     if (!isOpen) return null;
 

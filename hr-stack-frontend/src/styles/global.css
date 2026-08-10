@@ -24,10 +24,10 @@ body{
     z-index:1000;
 }
 .navbar-logo h2{
-    margin:0;
+    margin: 10px;;
     color:#2563eb;
     font-size:28px;
-    font-weight:750;
+    font: weight 700px;;
 }
 .navbar-right{
     display:flex;
@@ -90,7 +90,7 @@ body{
     display:flex;
     flex-direction:column;
     padding:30px 20px;
-    border-radius:0 25px 25px 0;
+    /* border-radius:0 25px 25px 0; */
     box-shadow:5px 0 20px rgba(0,0,0,.15);
 }
 .logo-section{
