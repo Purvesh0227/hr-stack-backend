@@ -1,6 +1,11 @@
 import { useState } from "react";
 import API from "../services/api";
-import {isValidEmail,isValidPhone,getPasswordChecks} from "../utils/validators";
+
+import {
+    isValidEmail,
+    isValidPhone,
+    getPasswordChecks
+} from "../utils/validators";
 
 function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
 
@@ -19,88 +24,87 @@ function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
         });
     };
 
+    // Validation - runs while typing
+    const firstNameValid =
+        adminData.firstName !== "" &&
+        /^\S+$/.test(adminData.firstName);
+
+    const lastNameValid =
+        adminData.lastName !== "" &&
+        /^\S+$/.test(adminData.lastName);
+
+    const emailValid =
+        isValidEmail(adminData.email);
+
+    const phoneValid =
+        isValidPhone(adminData.mobile);
+
+    const {
+        hasMinLength,
+        hasUpperCase,
+        hasLowerCase,
+        hasNumber,
+        hasSpecial
+    } = getPasswordChecks(adminData.password);
+
+    const passwordValid =
+        hasMinLength &&
+        hasUpperCase &&
+        hasLowerCase &&
+        hasNumber &&
+        hasSpecial;
+
+    const formValid =
+        firstNameValid &&
+        lastNameValid &&
+        emailValid &&
+        phoneValid &&
+        passwordValid;
+
     const handleSubmit = async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    if (!/^\S+$/.test(adminData.firstName)) {
-        alert("First name must not contain spaces");
-        return;
-    }
-
-    if (!/^\S+$/.test(adminData.lastName)) {
-        alert("Last name must not contain spaces");
-        return;
-    }
-
-    if (!isValidEmail(adminData.email)) {
-        alert("Please enter a valid email");
-        return;
-    }
-
-    if (!isValidPhone(adminData.mobile)) {
-        alert("Mobile number must contain exactly 10 digits");
-        return;
-    }
-
-    const passwordChecks = getPasswordChecks(adminData.password);
-
-    if (
-        !passwordChecks.hasMinLength ||
-        !passwordChecks.hasUpperCase ||
-        !passwordChecks.hasLowerCase ||
-        !passwordChecks.hasNumber ||
-        !passwordChecks.hasSpecial
-    ) {
-        alert(
-            "Password must be at least 8 characters and include uppercase, lowercase, number and special character"
-        );
-        return;
-    }
-
-    try {
-        await API.post("/createAdmin", adminData);
-
-        alert("Admin created successfully");
-
-        refreshAdmins();
-
-        setAdminData({
-            firstName: "",
-            lastName: "",
-            email: "",
-            mobile: "",
-            password: ""
-        });
-
-        onClose();
-
-    } catch (error) {
-    console.error("Create Admin Error:", error);
-
-    if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Response:", error.response.data);
-
-        if (error.response.data?.errors) {
-            alert(error.response.data.errors.join("\n"));
-        } else if (error.response.data?.error) {
-            alert(error.response.data.error);
-        } else if (error.response.data?.message) {
-            alert(error.response.data.message);
-        } else {
-            alert("Failed to create admin");
+        if (!formValid) {
+            return;
         }
-    } else if (error.request) {
-        console.error("No response received:", error.request);
-        alert("Backend server is not responding");
-    } else {
-        console.error("Request Error:", error.message);
-        alert(error.message);
-    }
-}
-};
 
-    if (!isOpen) return null;
+        try {
+
+            await API.post("/createAdmin", adminData);
+
+            alert("Admin created successfully");
+
+            refreshAdmins();
+
+            setAdminData({
+                firstName: "",
+                lastName: "",
+                email: "",
+                mobile: "",
+                password: ""
+            });
+
+            onClose();
+
+        } catch (error) {
+
+            console.log(error.response);
+
+            if (error.response?.data?.errors) {
+                alert(error.response.data.errors.join("\n"));
+            }
+            else if (error.response?.data?.message) {
+                alert(error.response.data.message);
+            }
+            else {
+                alert("Failed to create admin");
+            }
+        }
+    };
+
+    if (!isOpen) {
+        return null;
+    }
 
     return (
         <div className="modal-overlay">
@@ -111,6 +115,7 @@ function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
 
                 <form onSubmit={handleSubmit}>
 
+                    {/* First Name */}
                     <input
                         type="text"
                         name="firstName"
@@ -120,6 +125,22 @@ function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
                         required
                     />
 
+                    {adminData.firstName !== "" && (
+                        <small
+                            className={
+                                firstNameValid
+                                    ? "valid"
+                                    : "invalid"
+                            }
+                        >
+                            {firstNameValid
+                                ? "✓ Valid First Name"
+                                : "✗ First name must not contain spaces"}
+                        </small>
+                    )}
+
+
+                    {/* Last Name */}
                     <input
                         type="text"
                         name="lastName"
@@ -129,6 +150,22 @@ function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
                         required
                     />
 
+                    {adminData.lastName !== "" && (
+                        <small
+                            className={
+                                lastNameValid
+                                    ? "valid"
+                                    : "invalid"
+                            }
+                        >
+                            {lastNameValid
+                                ? "✓ Valid Last Name"
+                                : "✗ Last name must not contain spaces"}
+                        </small>
+                    )}
+
+
+                    {/* Email */}
                     <input
                         type="email"
                         name="email"
@@ -138,17 +175,48 @@ function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
                         required
                     />
 
+                    {adminData.email !== "" && (
+                        <small
+                            className={
+                                emailValid
+                                    ? "valid"
+                                    : "invalid"
+                            }
+                        >
+                            {emailValid
+                                ? "✓ Valid Email"
+                                : "✗ Enter a valid email address"}
+                        </small>
+                    )}
 
+
+                    {/* Mobile */}
                     <input
-                    type="text"
-                    name="mobile"
-                    placeholder="Mobile Number"
-                    value={adminData.mobile}
-                    onChange={handleChange}
-                    maxLength={10}
-                    required
+                        type="text"
+                        name="mobile"
+                        placeholder="Mobile Number"
+                        value={adminData.mobile}
+                        onChange={handleChange}
+                        maxLength="10"
+                        required
                     />
 
+                    {adminData.mobile !== "" && (
+                        <small
+                            className={
+                                phoneValid
+                                    ? "valid"
+                                    : "invalid"
+                            }
+                        >
+                            {phoneValid
+                                ? "✓ Valid Mobile Number"
+                                : "✗ Mobile number must contain exactly 10 digits"}
+                        </small>
+                    )}
+
+
+                    {/* Password */}
                     <input
                         type="password"
                         name="password"
@@ -158,6 +226,59 @@ function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
                         required
                     />
 
+                    {adminData.password !== "" && (
+                        <div className="password-rules">
+
+                            <p className={
+                                hasMinLength
+                                    ? "valid"
+                                    : "invalid"
+                            }>
+                                {hasMinLength ? "✓" : "✗"}
+                                {" "}Minimum 8 characters
+                            </p>
+
+                            <p className={
+                                hasUpperCase
+                                    ? "valid"
+                                    : "invalid"
+                            }>
+                                {hasUpperCase ? "✓" : "✗"}
+                                {" "}One uppercase letter
+                            </p>
+
+                            <p className={
+                                hasLowerCase
+                                    ? "valid"
+                                    : "invalid"
+                            }>
+                                {hasLowerCase ? "✓" : "✗"}
+                                {" "}One lowercase letter
+                            </p>
+
+                            <p className={
+                                hasNumber
+                                    ? "valid"
+                                    : "invalid"
+                            }>
+                                {hasNumber ? "✓" : "✗"}
+                                {" "}One number
+                            </p>
+
+                            <p className={
+                                hasSpecial
+                                    ? "valid"
+                                    : "invalid"
+                            }>
+                                {hasSpecial ? "✓" : "✗"}
+                                {" "}One special character
+                            </p>
+
+                        </div>
+                    )}
+
+
+                    {/* Buttons */}
                     <div className="modal-buttons">
 
                         <button
@@ -171,6 +292,7 @@ function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
                         <button
                             type="submit"
                             className="save-btn"
+                            disabled={!formValid}
                         >
                             Save
                         </button>

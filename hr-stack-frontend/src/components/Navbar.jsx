@@ -16,7 +16,7 @@ function Navbar() {
         <header className="navbar">
 
             <div className="navbar-logo">
-                <h2>HR-Stack</h2>
+                <h2>HRStack</h2>
             </div>
 
             <div className="navbar-right">
