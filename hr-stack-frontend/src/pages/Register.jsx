@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import API from "../services/api";
+import { registerEmployee } from "../services/api";
+import { isValidEmail, isValidPhone, getPasswordChecks, doPasswordsMatch } from "../utils/validators";
 
 
 function Register() {
@@ -25,24 +26,12 @@ function Register() {
 
     };
 
-    // For password check
-    const password = employee.password;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSpecial = /[@$!%*?&]/.test(password);
-    const hasMinLength = password.length >= 8;
+    // For Validation
+    const emailValid = isValidEmail(employee.email);
+    const phoneValid = isValidPhone(employee.mobile);
+    const { hasMinLength, hasUpperCase, hasLowerCase, hasNumber, hasSpecial } = getPasswordChecks(employee.password);
+    const passwordsMatch = doPasswordsMatch(employee.password, employee.confirmPassword);
 
-
-//for email check 
-    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-    const phoneRegex = /^[0-9]{10}$/;
-    const emailValid = emailRegex.test(employee.email);
-
-//for phone number check 
-    const phoneValid =phoneRegex.test(employee.mobile);
-
-    const passwordsMatch = employee.password === employee.confirmPassword && employee.confirmPassword !== "";
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -67,7 +56,7 @@ function Register() {
         }
 
         try {
-            await API.post("/register", employee);
+            await registerEmployee(employee);
             alert("Employee Registered Successfully");
             navigate("/login");
         } catch (error) 
