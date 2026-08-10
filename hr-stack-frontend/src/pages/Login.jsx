@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import API from "../services/api";
+import { loginEmployee } from "../services/api";
 
 
 function Login() {
@@ -23,7 +23,7 @@ function Login() {
 
         e.preventDefault();
         try {
-            const response = await API.post("/login", loginData);
+            const response = await loginEmployee(loginData);
             localStorage.setItem("employee",JSON.stringify(response.data));
             localStorage.setItem("email",response.data.email);
             localStorage.setItem("role",response.data.role);

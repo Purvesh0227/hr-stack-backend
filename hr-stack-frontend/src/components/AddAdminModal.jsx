@@ -1,5 +1,5 @@
 import { useState } from "react";
-import API from "../services/api";
+import { createAdmin } from "../services/api";
 
 function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
 
@@ -23,7 +23,7 @@ function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
 
         try {
 
-            await API.post("/createAdmin", adminData);
+            await createAdmin(adminData);
 
             alert("Admin created successfully");
 

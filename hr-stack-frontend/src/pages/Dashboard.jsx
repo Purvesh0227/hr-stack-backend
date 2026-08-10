@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import API from "../services/api";
+import { getAllEmployees, getAllAdmins, getAdminProfile } from "../services/api";
 import Navbar from "../components/Navbar";
 import AdminSidebar from "../components/AdminSidebar";
 import Footer from "../components/Footer";
@@ -18,46 +18,35 @@ function Dashboard() {
     const [activeMenu, setActiveMenu] = useState("dashboard");
     const [showAddAdminModal, setShowAddAdminModal] = useState(false);
 
-    const getAllEmployees = async () => {
+    const handleGetAllEmployees = async () => {
         try {
-            const response = await API.get("/allEmployees", {
-                params: { email }
-            });
-
+            const response = await getAllEmployees(email);
             setEmployees(response.data);
         } catch (error) {
             alert(error.response?.data || "Unable to fetch employees");
         }
     };
 
-    const getAllAdmins = async () => {
+    const handleGetAllAdmins = async () => {
         try {
-            const response = await API.get("/allAdmins", {
-                params: { email }
-            });
-
+            const response = await getAllAdmins(email);
             setAdmins(response.data);
         } catch (error) {
             alert(error.response?.data || "Unable to fetch admins");
         }
     };
 
-    const getAdminProfile = async () => {
-    try {
-
-        const response = await API.get("/adminProfile", {
-            params: { email }
-        });
-
-        setAdminProfile(response.data);
-
-    } catch (error) {
-        alert(error.response?.data || "Unable to fetch admin profile");
-    }
-};
+    const handleGetAdminProfile = async () => {
+        try {
+            const response = await getAdminProfile(email);
+            setAdminProfile(response.data);
+        } catch (error) {
+            alert(error.response?.data || "Unable to fetch admin profile");
+        }
+    };
 
     useEffect(() => {
-        getAdminProfile();
+        handleGetAdminProfile();
     }, [email]);
 
     return (
@@ -71,6 +60,7 @@ function Dashboard() {
                     <AdminSidebar
                         activeMenu={activeMenu}
                         setActiveMenu={setActiveMenu}
+                        role = {role}
                     />
 
                     <main className="dashboard-main">
@@ -92,7 +82,7 @@ function Dashboard() {
 
                                     <button
                                         className="primary-btn"
-                                        onClick={getAllEmployees}
+                                        onClick={handleGetAllEmployees}
                                     >
                                         View Employees
                                     </button>
@@ -142,7 +132,7 @@ function Dashboard() {
                                 <div className="card-header">
                                     <h2>Administrators</h2>
                                     <div style={{ display: "flex", gap: "10px" }}>
-                                        <button className="primary-btn" onClick={getAllAdmins}>
+                                        <button className="primary-btn" onClick={handleGetAllAdmins}>
                                             View Admins
                                         </button>
                                         <button className="primary-btn" onClick={() => setShowAddAdminModal(true)}>
@@ -174,7 +164,7 @@ function Dashboard() {
                                 )}
                             <AddAdminModal isOpen={showAddAdminModal} 
                                             onClose={() => setShowAddAdminModal(false)} 
-                                            refreshAdmins={getAllAdmins}
+                                            refreshAdmins={handleGetAllAdmins}
                             />
                             </div>
                         )}
@@ -202,18 +192,51 @@ function Dashboard() {
                     </main>
                 </div>
             ) : (
-                <div className="employee-dashboard">
-                    <div className="profile-card">
-                        <h2>My Profile</h2>
-                        <p><strong>Employee ID:</strong> {employee.id}</p>
-                        <p><strong>First Name:</strong> {employee.firstName}</p>
-                        <p><strong>Last Name:</strong> {employee.lastName}</p>
-                        <p><strong>Email:</strong> {employee.email}</p>
-                        <p><strong>Mobile:</strong> {employee.mobile}</p>
-                        <p><strong>Role:</strong> {employee.role}</p>
+                <div className="dashboard-wrapper">
+
+                    <AdminSidebar
+                        activeMenu={activeMenu}
+                        setActiveMenu={setActiveMenu}
+                        role = {role}
+                    />
+                    <main className="dashboard-main">
+
+            {/* Home */}
+            {activeMenu === "dashboard" && (
+                <>
+                    <div className="dashboard-header">
+                        <div>
+                            <h1>Welcome, {employee.firstName}</h1>
+                            <p>Welcome to your employee dashboard.</p>
+                        </div>
+                    </div>
+
+                    <div className="content-card">
+                        <h2>Home</h2>
+                        <p>
+                            Welcome to HR-Stack Employee Dashboard.
+                        </p>
+                    </div>
+                </>
+            )}
+
+            {/* Settings */}
+            {activeMenu === "settings" && (
+                <div className="content-card">
+                    <h2>My Profile</h2>
+                    <div className="profile-details">
+                        <p><strong>Employee ID :</strong> {employee.id}</p>
+                        <p><strong>First Name :</strong> {employee.firstName}</p>
+                        <p><strong>Last Name :</strong> {employee.lastName}</p>
+                        <p><strong>Email :</strong> {employee.email}</p>
+                        <p><strong>Mobile :</strong> {employee.mobile}</p>
+                        <p><strong>Role :</strong> {employee.role}</p>
                     </div>
                 </div>
             )}
+            </main>
+            </div>
+        )}
         <Footer />
         </>
     );
