@@ -21,7 +21,7 @@ function Navbar() {
 
             <div className="navbar-right">
 
-                {/* <div className="user-details">
+                {/* <div className="employee-details">
                     <span className="welcome-text">
                         Welcome, {employee.firstName}
                     </span>

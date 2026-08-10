@@ -96,6 +96,7 @@ function Dashboard() {
                                         <thead>
 
                                         <tr>
+                                            <th>ID</th>
                                             <th>Name</th>
                                             <th>Email</th>
                                             <th>Mobile</th>
@@ -109,6 +110,7 @@ function Dashboard() {
                                         {employees.map(emp => (
 
                                             <tr key={emp.id}>
+                                                <td>{emp.empId}</td>
                                                 <td>{emp.firstName} {emp.lastName}</td>
                                                 <td>{emp.email}</td>
                                                 <td>{emp.mobile}</td>
@@ -144,6 +146,7 @@ function Dashboard() {
                                     <table className="employee-table">
                                         <thead>
                                         <tr>
+                                            <th>ID</th>
                                             <th>Name</th>
                                             <th>Email</th>
                                             <th>Mobile</th>
@@ -153,6 +156,7 @@ function Dashboard() {
                                         <tbody>
                                         {admins.map(admin => (
                                             <tr key={admin.id}>
+                                                <td>{admin.empId}</td>
                                                 <td>{admin.firstName} {admin.lastName}</td>
                                                 <td>{admin.email}</td>
                                                 <td>{admin.mobile}</td>

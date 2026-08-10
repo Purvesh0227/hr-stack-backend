@@ -5,7 +5,6 @@ import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
@@ -37,8 +36,16 @@ public class EmployeeController {
     //create admin
 
     @PostMapping("/createAdmin")
-    public Employee  createAdmin(@Valid @RequestBody Employee employee) {
-        return employeeService.createAdmin(employee);
+    public ResponseEntity<?> createAdmin(
+            @Valid @RequestBody Employee employee) {
+        try {
+            Employee savedAdmin = employeeService.createAdmin(employee);
+            return ResponseEntity.ok(savedAdmin);
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
     // to get all emplyee details

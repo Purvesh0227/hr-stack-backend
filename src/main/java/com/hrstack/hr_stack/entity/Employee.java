@@ -9,7 +9,7 @@ import java.util.UUID;
 
 
 @Entity
-@Table(name = "employee",
+@Table(name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "email"),
                 @UniqueConstraint(columnNames = "mobile")
@@ -21,6 +21,10 @@ public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    //empId
+    @Column(name = "emp_id", nullable = false,unique = true)
+    private String empId;
 
     //FirstName
     @NotBlank(message = "First name is required")
@@ -77,7 +81,7 @@ public class Employee {
     public Employee() {
     }
 
-    public Employee(UUID id, String firstName, String lastName, String email, String mobile,String password,String role) {
+    public Employee(UUID id, String firstName, String lastName, String email, String mobile, String password, String role) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -142,5 +146,13 @@ public class Employee {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getEmpId() {
+        return empId;
+    }
+
+    public void setEmpId(String empId) {
+        this.empId = empId;
     }
 }

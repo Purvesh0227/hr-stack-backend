@@ -128,7 +128,7 @@ function Register() {
                     required
                 />
 
-                {employee.mobile !== "" && ( 
+                {employee.mobile !== "" && (
                     <small className={phoneValid ? "valid" : "invalid"}> {phoneValid ? "✓ Valid Mobile Number" : "✗ Mobile number must contain exactly 10 digits"}
                 </small>
                 )}

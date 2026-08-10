@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { createAdmin } from "../services/api";
-import { isValidEmail, isValidPhone, getPasswordChecks } from "../utils/validators";
+import API from "../services/api";
+import {isValidEmail,isValidPhone,getPasswordChecks} from "../utils/validators";
 
 function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
 
@@ -75,16 +75,29 @@ function AddAdminModal({ isOpen, onClose, refreshAdmins }) {
         onClose();
 
     } catch (error) {
-        console.log(error.response);
+    console.error("Create Admin Error:", error);
 
-        if (error.response?.data?.errors) {
+    if (error.response) {
+        console.error("Status:", error.response.status);
+        console.error("Response:", error.response.data);
+
+        if (error.response.data?.errors) {
             alert(error.response.data.errors.join("\n"));
-        } else if (error.response?.data?.message) {
+        } else if (error.response.data?.error) {
+            alert(error.response.data.error);
+        } else if (error.response.data?.message) {
             alert(error.response.data.message);
         } else {
-            alert(JSON.stringify(error.response?.data));
+            alert("Failed to create admin");
         }
+    } else if (error.request) {
+        console.error("No response received:", error.request);
+        alert("Backend server is not responding");
+    } else {
+        console.error("Request Error:", error.message);
+        alert(error.message);
     }
+}
 };
 
     if (!isOpen) return null;

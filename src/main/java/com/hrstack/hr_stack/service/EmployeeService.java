@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.time.Year;
 
 @Service
 public class EmployeeService {
@@ -21,6 +22,7 @@ public class EmployeeService {
         if (employeeRepository.existsByEmailIgnoreCase(employee.getEmail())) {
             throw new RuntimeException("Email already exists. Please use another email.");
         }
+        employee.setEmpId(generateEmpId());
 
         employee.setRole("EMPLOYEE");
 
@@ -35,6 +37,7 @@ public class EmployeeService {
         if(employeeRepository.existsByEmailIgnoreCase(employee.getEmail())){
             throw new RuntimeException("Email already exists. Please use another email.");
         }
+        employee.setEmpId(generateEmpId());
         employee.setPassword(encoder.encode(employee.getPassword()));
         employee.setRole("ADMIN");
 
@@ -107,6 +110,33 @@ public class EmployeeService {
             throw new RuntimeException("Employee not found with id: " + id);
         }
         employeeRepository.deleteById(id);
+    }
+
+    //generate empid
+    public String generateEmpId(){
+        int currentYear = Year.now().getValue();
+        String prefix = "HRStack_" + currentYear + "_IT_";
+        List<Employee> employees = employeeRepository.findAll();
+
+        int maxSequence = 0;
+
+        for(Employee employee : employees){
+            if(employee.getEmpId() != null
+            && employee.getEmpId().startsWith(prefix)){
+                String sequencePart = employee.getEmpId().substring(prefix.length());
+                try{
+                    int sequence = Integer.parseInt(sequencePart);
+                    if(sequence > maxSequence){
+                        maxSequence = sequence;
+                    }
+
+                } catch(NumberFormatException ignored){
+                    //ignores invalid emp id values
+                }
+            }
+        }
+        int nextSequence = maxSequence + 1;
+        return prefix+String.format("%03d", nextSequence);
     }
 
 
