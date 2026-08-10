@@ -1,0 +1,536 @@
+/* ============================================================
+   GLOBAL RESET
+   ============================================================ */
+body{
+    margin:0;
+    padding:0;
+    background:#f4f7fc;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+/* ============================================================
+   NAVBAR  (was: Navbar.css)
+   ============================================================ */
+.navbar{
+    height:65px;
+    background:#ffffff;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 35px;
+    box-shadow:0 2px 12px rgba(0,0,0,.08);
+    position:sticky;
+    top:0;
+    z-index:1000;
+}
+.navbar-logo h2{
+    margin:0;
+    color:#2563eb;
+    font-size:28px;
+    font-weight:750;
+}
+.navbar-right{
+    display:flex;
+    align-items:center;
+    gap:20px;
+}
+.user-details{
+    display:inline-flex;
+    flex-direction:column;
+    align-items:flex-end;
+}
+.welcome-text{
+    font-size:15px;
+    color:#374151;
+    font-weight:600;
+}
+.role-badge{
+    margin-top:4px;
+    padding:4px 10px;
+    background:#2563eb;
+    color:white;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+}
+.logout-btn{
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:10px 20px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:600;
+    transition:0.3s;
+}
+.logout-btn:hover{
+    background:#dc2626;
+}
+@media(max-width:768px){
+    .navbar{
+        padding:0 20px;
+    }
+    .navbar-logo h2{
+        font-size:22px;
+    }
+    .welcome-text{
+        display:none;
+    }
+}
+
+/* ============================================================
+   SIDEBAR  (was: Sidebar.css)
+   ============================================================ */
+.sidebar{
+    width:220px;
+    min-height:calc(100vh - 70px);
+    background:linear-gradient(180deg,#3B82F6,#1E40AF);
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    padding:30px 20px;
+    border-radius:0 25px 25px 0;
+    box-shadow:5px 0 20px rgba(0,0,0,.15);
+}
+.logo-section{
+    margin-bottom:40px;
+}
+.logo-section h2{
+    margin:0;
+    font-size:32px;
+    font-weight:700;
+    letter-spacing:.5px;
+}
+.logo-section p{
+    margin-top:6px;
+    color:#dbeafe;
+    font-size:14px;
+}
+.sidebar-menu{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+.sidebar-menu button{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    width:100%;
+    border:none;
+    outline:none;
+    background:transparent;
+    color:white;
+    padding:15px 18px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:.3s;
+    font-size:16px;
+    font-weight:500;
+}
+.sidebar-menu button:hover{
+    background:rgba(255,255,255,.15);
+    transform:translateX(15px);
+}
+.sidebar-menu button.active{
+    background:white;
+    color:#2563EB;
+    font-weight:600;
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+.icon{
+    font-size:22px;
+}
+.sidebar-menu span{
+    font-size:16px;
+}
+
+/* ============================================================
+   FOOTER  (was: Footer.css)
+   ============================================================ */
+.footer{
+    width:100%;
+    margin-top:0;
+    background:#ffffff;
+    border-top:1px solid #e5e7eb;
+    padding:18px 30px;
+    text-align:center;
+    box-shadow:0 -2px 8px rgba(0,0,0,.05);
+    position: sticky;
+}
+.footer-content p{
+    margin:4px 0;
+    color:#6b7280;
+    font-size:14px;
+}
+.footer-content p:first-child{
+    font-weight:600;
+    color:#374151;
+}
+
+/* ============================================================
+   DASHBOARD  (was: Dashboard.css)
+   ============================================================ */
+.dashboard-wrapper{
+    display:flex;
+    min-height:calc(100vh - 70px);
+    background:#f4f7fc;
+}
+.dashboard-main{
+    flex:1;
+    padding:35px;
+}
+.dashboard-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+.dashboard-header h1{
+    margin:0;
+    font-size:34px;
+    color:#1f2937;
+}
+.dashboard-header p{
+    margin-top:8px;
+    color:#6b7280;
+    font-size:15px;
+}
+.content-card{
+    background:white;
+    border-radius:18px;
+    padding:30px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+.card-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+.card-header h2{
+    margin:0;
+    color:#1f2937;
+}
+.primary-btn{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:12px 22px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:600;
+    transition:.3s;
+}
+.primary-btn:hover{
+    background:#1d4ed8;
+}
+.employee-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+.employee-table thead{
+    background:#2563eb;
+    color:white;
+}
+.employee-table th{
+    padding:16px;
+    text-align:left;
+}
+.employee-table td{
+    padding:15px;
+    border-bottom:1px solid #e5e7eb;
+}
+.employee-table tbody tr:hover{
+    background:#f9fafb;
+}
+.employee-dashboard{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:calc(100vh - 70px);
+    background:#f4f7fc;
+}
+.profile-card{
+    width:500px;
+    background:white;
+    padding:30px;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+.profile-card h2{
+    margin-top:0;
+    color:#2563eb;
+}
+.profile-card p{
+    margin:14px 0;
+    color:#374151;
+}
+.profile-details{
+    margin-top:20px;
+}
+.profile-details p{
+    font-size:20px;
+    margin:18px 0;
+    padding:12px 15px;
+    background:#f8fafc;
+    border-radius:8px;
+}
+.profile-details strong{
+    color:#2563eb;
+}
+@media(max-width:900px){
+    .dashboard-wrapper{
+        flex-direction:column;
+    }
+    .dashboard-main{
+        padding:20px;
+    }
+    .card-header{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:15px;
+    }
+    .employee-table{
+        display:block;
+        overflow-x:auto;
+    }
+}
+
+/* ============================================================
+   LOGIN  (was: Login.css)
+   ============================================================ */
+.login-container{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f4f6f9;
+}
+.login-card{
+    background:white;
+    width:380px;
+    padding:35px;
+    border-radius:10px;
+    box-shadow:0 0 15px rgba(0,0,0,0.15);
+}
+.login-card h2{
+    text-align:center;
+    margin-bottom:25px;
+    color:#2563eb;
+}
+.login-card input{
+    width:100%;
+    padding:12px;
+    margin-bottom:18px;
+    border:1px solid #ccc;
+    border-radius:5px;
+    outline:none;
+}
+.login-card input:focus{
+    border-color:#2563eb;
+}
+.login-card button{
+    width:100%;
+    padding:12px;
+    background:#2563eb;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:16px;
+}
+.login-card button:hover{
+    background:#1d4ed8;
+}
+.login-card p{
+    text-align:center;
+    margin-top:20px;
+}
+.login-card a{
+    text-decoration:none;
+    margin-left:5px;
+    color:#2563eb;
+    font-weight:bold;
+}
+
+/* ============================================================
+   REGISTER  (was: Register.css)
+   ============================================================ */
+.register-container{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f4f6f9;
+    padding:30px;
+}
+.register-card{
+    width:450px;
+    background:white;
+    padding:35px;
+    border-radius:10px;
+    box-shadow:0 0 15px rgba(0,0,0,.15);
+}
+.register-card h2{
+    text-align:center;
+    margin-bottom:25px;
+    color:#2563eb;
+}
+.register-card input{
+    width:100%;
+    padding:12px;
+    margin-bottom:16px;
+    border:1px solid #ccc;
+    border-radius:5px;
+}
+.register-card input:focus{
+    outline:none;
+    border-color:#2563eb;
+}
+.register-card button{
+    width:100%;
+    padding:12px;
+    background:#2563eb;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:16px;
+}
+.register-card button:hover{
+    background:#1d4ed8;
+}
+.register-card p{
+    text-align:center;
+    margin-top:20px;
+}
+.register-card a{
+    text-decoration:none;
+    margin-left:5px;
+    color:#2563eb;
+    font-weight:bold;
+}
+.register-card button:disabled{
+    background:#9ca3af;
+    cursor:not-allowed;
+}
+.register-card button:disabled:hover{
+    background:#9ca3af;
+}
+.valid,
+.invalid{
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 4px;
+    margin-bottom: 10px;
+    padding-left: 4px;
+}
+.valid{
+    color:#16a34a;
+}
+.invalid{
+    color:#dc2626;
+}
+
+/* ============================================================
+   NOT FOUND PAGE  (was: NotFound.css)
+   ============================================================ */
+.not-found-container {
+    min-height: 100vh;
+    background: #f4f6f9;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+.not-found-container h1 {
+    font-size: 120px;
+    color: #2563eb;
+    margin-bottom: 10px;
+}
+.not-found-container h2 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 15px;
+}
+.not-found-container p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 30px;
+}
+.not-found-container a {
+    text-decoration: none;
+    background: #2563eb;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+.not-found-container a:hover {
+    background: #1d4ed8;
+}
+
+/* ============================================================
+   ADD ADMIN MODAL  (was: AddAdminModal.css)
+   ============================================================ */
+.modal-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+}
+.modal{
+    width:420px;
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+.modal h2{
+    margin-bottom:20px;
+}
+.modal form{
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+.modal input{
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    font-size:15px;
+}
+.modal-buttons{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:10px;
+}
+.cancel-btn{
+    background:#6b7280;
+    color:white;
+    border:none;
+    padding:10px 20px;
+    border-radius:8px;
+    cursor:pointer;
+}
+.save-btn{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:10px 20px;
+    border-radius:8px;
+    cursor:pointer;
+}
