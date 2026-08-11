@@ -17,7 +17,9 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter) {
+
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
@@ -26,16 +28,17 @@ public class SecurityConfig {
             HttpSecurity http) throws Exception {
 
         http
-                // Disable CSRF because we are using JWT
+
+                // JWT APIs do not need CSRF
                 .csrf(csrf -> csrf.disable())
 
-                // Disable default browser login page
+                // Disable default login page
                 .formLogin(form -> form.disable())
 
-                // Disable HTTP Basic login popup
+                // Disable HTTP Basic
                 .httpBasic(basic -> basic.disable())
 
-                // No server-side session
+                // JWT is stateless
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
@@ -44,10 +47,12 @@ public class SecurityConfig {
 
                 // CORS
                 .cors(cors ->
-                        cors.configurationSource(corsConfigurationSource())
+                        cors.configurationSource(
+                                corsConfigurationSource()
+                        )
                 )
 
-                // API authorization
+                // Authorization
                 .authorizeHttpRequests(auth -> auth
 
                         // Swagger
@@ -63,18 +68,21 @@ public class SecurityConfig {
                                 "/employee/login"
                         ).permitAll()
 
-                        // ADMIN only
+                        // Admin only
                         .requestMatchers(
                                 "/employee/createAdmin",
                                 "/employee/createotp"
                         ).hasRole("ADMIN")
 
-                        // ADMIN + EMPLOYEE
+                        // Admin + Employee
                         .requestMatchers(
                                 "/employee/attendance"
-                        ).hasAnyRole("ADMIN", "EMPLOYEE")
+                        ).hasAnyRole(
+                                "ADMIN",
+                                "EMPLOYEE"
+                        )
 
-                        // Everything else requires authentication
+                        // All remaining APIs
                         .anyRequest().authenticated()
                 )
 

@@ -1,10 +1,13 @@
 package com.hrstack.hr_stack.controller;
 
+import com.hrstack.hr_stack.dto.CreateOtpRequest;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.Otp;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import com.hrstack.hr_stack.service.OtpService;
+
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +33,8 @@ public class OtpController {
 
     @PostMapping("/createotp")
     public ResponseEntity<?> createOtp(
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestBody CreateOtpRequest request) {
 
         // Get logged-in user's email from JWT
         String email = authentication.getName();
@@ -41,8 +45,9 @@ public class OtpController {
                         new RuntimeException("User not found")
                 );
 
-        // Check Admin
+        // Only ADMIN can create OTP
         if (!"ADMIN".equalsIgnoreCase(employee.getRole())) {
+
             return ResponseEntity
                     .status(403)
                     .body(Map.of(
@@ -51,8 +56,24 @@ public class OtpController {
                     ));
         }
 
-        // Generate OTP
-        Otp otp = otpService.createOtp(employee.getId());
+        // Department validation
+        if (request.getDepartment() == null ||
+                request.getDepartment().isBlank()) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of(
+                            "error",
+                            "Department is required."
+                    ));
+        }
+
+        // Create OTP
+        Otp otp = otpService.createOtp(
+                employee.getId(),
+                request.getDate(),
+                request.getDepartment()
+        );
 
         return ResponseEntity.ok(otp);
     }

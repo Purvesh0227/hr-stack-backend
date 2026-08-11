@@ -5,39 +5,68 @@ import com.hrstack.hr_stack.repository.OtpRepository;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.*;
 import java.util.UUID;
 
 @Service
 public class OtpService {
+
     private final OtpRepository otpRepository;
+
     private final SecureRandom secureRandom = new SecureRandom();
 
     public OtpService(OtpRepository otpRepository) {
         this.otpRepository = otpRepository;
     }
 
-    public Otp createOtp(UUID adminId){
-        //generate 6 digit otp
-        String otpValue = String.format("%06d", secureRandom.nextInt(1_000_000));
+    public Otp createOtp(
+            UUID adminId,
+            Long requestedDate,
+            String department) {
 
-        //current utc timestamp
-        Instant createdOn = Instant.now();
+        // Generate 6 digit OTP
+        String otpValue = String.format(
+                "%06d",
+                secureRandom.nextInt(1_000_000)
+        );
 
-        //otp expires after 5min
-        Instant expiresOn = createdOn.plus(5, ChronoUnit.MINUTES);
+        // Current Unix timestamp in milliseconds
+        long createdOn = System.currentTimeMillis();
+
+        // OTP expires after 5 minutes
+        long expiredOn =
+                createdOn + (5 * 60 * 1000);
+
+        /*
+         * If date is not provided,
+         * use today's date at UTC midnight.
+         */
+        long otpDate;
+
+        if (requestedDate == null) {
+
+            LocalDate today =
+                    LocalDate.now(ZoneOffset.UTC);
+
+            otpDate = today
+                    .atStartOfDay(ZoneOffset.UTC)
+                    .toInstant()
+                    .toEpochMilli();
+
+        } else {
+
+            otpDate = requestedDate;
+        }
 
         Otp otp = new Otp();
 
         otp.setOtp(otpValue);
         otp.setCreatedBy(adminId);
         otp.setCreatedOn(createdOn);
-        otp.setExpiredOn(expiresOn);
+        otp.setExpiredOn(expiredOn);
+        otp.setDate(otpDate);
+        otp.setDepartment(department);
 
         return otpRepository.save(otp);
-
-
     }
-
 }

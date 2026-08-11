@@ -10,8 +10,8 @@ import org.springframework.context.annotation.Configuration;
 @SecurityScheme(
         name = "bearerAuth",
         type = SecuritySchemeType.HTTP,
-        bearerFormat = "JWT",
-        scheme = "bearer"
+        scheme = "bearer",
+        bearerFormat = "JWT"
 )
 public class OpenAPIConfig {
 }

@@ -36,8 +36,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        String authHeader =
+                request.getHeader("Authorization");
 
+        // No token
         if (authHeader == null ||
                 !authHeader.startsWith("Bearer ")) {
 
@@ -47,18 +49,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
+        // Invalid token
         if (!jwtService.isTokenValid(token)) {
+
             filterChain.doFilter(request, response);
             return;
         }
 
         String email = jwtService.extractEmail(token);
 
-        Employee employee = employeeRepository
-                .findByEmail(email)
-                .orElse(null);
+        Employee employee =
+                employeeRepository
+                        .findByEmail(email)
+                        .orElse(null);
 
         if (employee == null) {
+
             filterChain.doFilter(request, response);
             return;
         }
@@ -71,7 +77,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         null,
                         List.of(
                                 new SimpleGrantedAuthority(
-                                        "ROLE_" + role.toUpperCase()
+                                        "ROLE_" +
+                                                role.toUpperCase()
                                 )
                         )
                 );
