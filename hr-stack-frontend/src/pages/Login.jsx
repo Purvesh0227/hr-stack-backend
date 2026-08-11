@@ -20,24 +20,45 @@ function Login() {
 
     //run when we are going to press login button 
     const handleLogin = async (e) => {
+    e.preventDefault();
 
-        e.preventDefault();
-        try {
-            const response = await loginEmployee(loginData);
-            localStorage.setItem("employee",JSON.stringify(response.data));
-            localStorage.setItem("email",response.data.email);
-            localStorage.setItem("role",response.data.role);
+    try {
+        const response = await loginEmployee(loginData);
 
-            alert("Login Successful");
-            navigate("/dashboard");
+        const token = response.data.token;
+        const employee = response.data.employee;
 
-        } catch (error) {
+        // Store JWT
+        localStorage.setItem("token", token);
 
-            alert(
-                error.response?.data?.error || "Invalid Credentials"
-            );
-        }
-    };
+        // Store employee details
+        localStorage.setItem(
+            "employee",
+            JSON.stringify(employee)
+        );
+
+        localStorage.setItem(
+            "email",
+            employee.email
+        );
+
+        localStorage.setItem(
+            "role",
+            employee.role
+        );
+
+        alert("Login Successful");
+
+        navigate("/dashboard");
+
+    } catch (error) {
+
+        alert(
+            error.response?.data?.error ||
+            "Invalid Credentials"
+        );
+    }
+};
 
     return (
 

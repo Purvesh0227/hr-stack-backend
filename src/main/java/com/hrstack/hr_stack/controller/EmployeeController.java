@@ -1,7 +1,9 @@
 package com.hrstack.hr_stack.controller;
 
 import com.hrstack.hr_stack.dto.LoginRequest;
+import com.hrstack.hr_stack.dto.LoginResponse;
 import com.hrstack.hr_stack.entity.Employee;
+import com.hrstack.hr_stack.security.JwtService;
 import com.hrstack.hr_stack.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import java.util.List;
 
 import java.util.UUID;
 
+
 @RestController
 @RequestMapping("/employee")
 @CrossOrigin(origins = "http://localhost:5173")
@@ -19,6 +22,9 @@ public class EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
+
+    @Autowired
+    private JwtService  jwtService;
 
     //to register employee
     @PostMapping("/register")
@@ -67,11 +73,23 @@ public class EmployeeController {
     }
 
     @PostMapping("/login")
-    public Employee login(@RequestBody LoginRequest request) {
-        return employeeService.login(
+    public ResponseEntity<LoginResponse> login(
+            @RequestBody LoginRequest request) {
+
+        Employee employee = employeeService.login(
                 request.getEmail(),
                 request.getPassword()
         );
+
+        String token = jwtService.generateToken(
+                employee.getEmail(),
+                employee.getRole()
+        );
+
+        LoginResponse response =
+                new LoginResponse(token, employee);
+
+        return ResponseEntity.ok(response);
     }
 
     // to get details of employee by email(task2)
