@@ -71,16 +71,15 @@ public class SecurityConfig {
                         // Admin only
                         .requestMatchers(
                                 "/employee/createAdmin",
-                                "/employee/createotp"
+                                "/employee/createotp",
+                                "/employee/attendance/all"
                         ).hasRole("ADMIN")
 
                         // Admin + Employee
                         .requestMatchers(
-                                "/employee/attendance"
-                        ).hasAnyRole(
-                                "ADMIN",
-                                "EMPLOYEE"
-                        )
+                                "/employee/attendance",
+                                "/employee/attendance/my"
+                        ).hasAnyRole("ADMIN", "EMPLOYEE")
 
                         // All remaining APIs
                         .anyRequest().authenticated()

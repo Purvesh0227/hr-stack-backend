@@ -9,6 +9,8 @@ import com.hrstack.hr_stack.repository.OtpRepository;
 
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AttendanceService {
 
@@ -26,55 +28,72 @@ public class AttendanceService {
         this.otpRepository = otpRepository;
     }
 
+    // Mark own attendance
     public Attendance markAttendance(String email) {
 
-        // Find logged-in employee
         Employee employee = employeeRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "Employee not found"
-                        )
+                        new RuntimeException("Employee not found")
                 );
 
         // Get latest OTP
         Otp otp = otpRepository
                 .findTopByOrderByCreatedOnDesc()
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "OTP not found"
-                        )
+                        new RuntimeException("OTP not found")
                 );
 
         // Current Unix timestamp in milliseconds
-        long currentTime =
-                System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
 
         // Check OTP expiry
         if (currentTime > otp.getExpiredOn()) {
-
-            throw new RuntimeException(
-                    "OTP is expired"
-            );
+            throw new RuntimeException("OTP is expired");
         }
 
         // Create attendance
         Attendance attendance = new Attendance();
 
-        attendance.setEmpId(
-                employee.getEmpId()
-        );
-
-        // Store current Unix timestamp
-        attendance.setMarkedOn(
-                currentTime
-        );
-
-        // Mark present
-        attendance.setStatus(
-                "PRESENT"
-        );
+        attendance.setEmpId(employee.getEmpId());
+        attendance.setMarkedOn(currentTime);
+        attendance.setStatus("PRESENT");
 
         return attendanceRepository.save(attendance);
+    }
+
+
+    // Get logged-in employee's attendance
+    public List<Attendance> getMyAttendance(String email) {
+
+        Employee employee = employeeRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Employee not found")
+                );
+
+        return attendanceRepository
+                .findByEmpId(employee.getEmpId());
+    }
+
+
+    // ADMIN - Get all employee attendance
+    public List<Attendance> getAllAttendance(String email) {
+
+        Employee employee = employeeRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Employee not found")
+                );
+
+        if (!"ADMIN".equalsIgnoreCase(employee.getRole())) {
+            throw new RuntimeException(
+                    "Access denied. You are not Admin"
+            );
+        }
+
+        // IMPORTANT:
+        // Get attendance records, NOT employees
+        return attendanceRepository.findAll();
     }
 }
