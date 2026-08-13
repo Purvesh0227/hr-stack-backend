@@ -26,22 +26,31 @@ public class AttendanceController {
         this.attendanceService = attendanceService;
     }
 
-
-    // ==========================================
-    // MARK OWN ATTENDANCE
-    // ADMIN + EMPLOYEE
-    // ==========================================
-
     @PostMapping("/attendance")
     public ResponseEntity<?> markAttendance(
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestBody Map<String, String> request) {
 
         try {
 
             String email = authentication.getName();
 
+            String enteredOtp = request.get("otp");
+
+            if (enteredOtp == null || enteredOtp.isBlank()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(Map.of(
+                                "error",
+                                "OTP is required"
+                        ));
+            }
+
             Attendance attendance =
-                    attendanceService.markAttendance(email);
+                    attendanceService.markAttendance(
+                            email,
+                            enteredOtp
+                    );
 
             return ResponseEntity.ok(attendance);
 
@@ -56,63 +65,20 @@ public class AttendanceController {
         }
     }
 
-
-    // ==========================================
-    // GET MY ATTENDANCE
-    // ADMIN + EMPLOYEE
-    // ==========================================
-
-    @GetMapping("/attendance/my")
-    public ResponseEntity<?> getMyAttendance(
-            Authentication authentication) {
+    @GetMapping("/attendance/view")
+    public ResponseEntity<?> viewAttendance(
+            Authentication authentication,
+            @RequestParam(defaultValue = "MY") String scope) {
 
         try {
-
             String email = authentication.getName();
-
             List<Attendance> attendances =
-                    attendanceService.getMyAttendance(email);
-
+                    attendanceService.viewAttendance(email, scope);
             return ResponseEntity.ok(attendances);
-
         } catch (RuntimeException e) {
-
             return ResponseEntity
                     .badRequest()
-                    .body(Map.of(
-                            "error",
-                            e.getMessage()
-                    ));
-        }
-    }
-
-
-    // ==========================================
-    // GET ALL ATTENDANCE
-    // ADMIN ONLY
-    // ==========================================
-
-    @GetMapping("/attendance/all")
-    public ResponseEntity<?> getAllAttendance(
-            Authentication authentication) {
-
-        try {
-
-            String email = authentication.getName();
-
-            List<Attendance> attendances =
-                    attendanceService.getAllAttendance(email);
-
-            return ResponseEntity.ok(attendances);
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(Map.of(
-                            "error",
-                            e.getMessage()
-                    ));
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 }
