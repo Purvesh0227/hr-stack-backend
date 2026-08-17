@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+
+    <title>Salary Slip</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            color: #222;
+            font-size: 13px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #222;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .header p {
+            margin: 5px 0;
+        }
+
+        .employee-details {
+            margin-bottom: 25px;
+        }
+
+        .employee-details table,
+        .salary-table,
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 9px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+        }
+
+        .amount {
+            text-align: right;
+        }
+
+        .net-salary {
+            margin-top: 25px;
+            border: 2px solid #222;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>HR-Stack</h1>
+    <p>Salary Slip</p>
+
+    <p>
+        <span th:text="${month}">Month</span>
+        -
+        <span th:text="${year}">Year</span>
+    </p>
+</div>
+
+
+<div class="section-title">
+    Employee Details
+</div>
+
+<div class="employee-details">
+
+    <table>
+        <tr>
+            <th>Employee Name</th>
+            <td th:text="${employeeName}">Employee Name</td>
+        </tr>
+
+        <tr>
+            <th>Employee ID</th>
+            <td th:text="${empId}">EMP001</td>
+        </tr>
+
+        <tr>
+            <th>Department</th>
+            <td th:text="${department}">IT</td>
+        </tr>
+    </table>
+
+</div>
+
+
+<div class="section-title">
+    Attendance Summary
+</div>
+
+<table class="attendance-table">
+
+    <tr>
+        <th>Working Days</th>
+        <th>Present Days</th>
+        <th>Absent Days</th>
+    </tr>
+
+    <tr>
+        <td th:text="${workingDays}">26</td>
+        <td th:text="${presentDays}">24</td>
+        <td th:text="${absentDays}">2</td>
+    </tr>
+
+</table>
+
+
+<div class="section-title">
+    Earnings
+</div>
+
+<table class="salary-table">
+
+    <tr>
+        <th>Description</th>
+        <th class="amount">Amount</th>
+    </tr>
+
+    <tr>
+        <td>Basic Pay</td>
+        <td class="amount" th:text="${basic}">0.00</td>
+    </tr>
+
+    <tr>
+        <td>HRA</td>
+        <td class="amount" th:text="${hra}">0.00</td>
+    </tr>
+
+    <tr>
+        <td>Allowances</td>
+        <td class="amount" th:text="${allowances}">0.00</td>
+    </tr>
+
+    <tr>
+        <th>Gross Salary</th>
+        <th class="amount" th:text="${grossSalary}">0.00</th>
+    </tr>
+
+</table>
+<div class="section-title">
+    Deductions
+</div>
+
+<table class="salary-table">
+
+    <tr>
+        <th>Description</th>
+        <th class="amount">Amount</th>
+    </tr>
+
+    <tr>
+        <td>PF</td>
+        <td class="amount" th:text="${pf}">0.00</td>
+    </tr>
+
+    <tr>
+        <td>Other Deductions</td>
+        <td class="amount" th:text="${otherDeductions}">0.00</td>
+    </tr>
+
+    <tr>
+        <th>Total Deductions</th>
+        <th class="amount" th:text="${totalDeductions}">0.00</th>
+    </tr>
+
+</table>
+
+
+<div class="net-salary">
+
+    Net Salary:
+    <span th:text="${netSalary}">0.00</span>
+
+</div>
+
+
+<div class="footer">
+
+    <p>This is a system-generated salary slip.</p>
+    <p>HR-Stack</p>
+
+</div>
+
+</body>
+
+</html>
