@@ -71,14 +71,13 @@ public class SecurityConfig {
                         // Admin only
                         .requestMatchers(
                                 "/employee/createAdmin",
-                                "/employee/createotp",
-                                "/employee/attendance/all"
+                                "/employee/createotp"
                         ).hasRole("ADMIN")
 
                         // Admin + Employee
                         .requestMatchers(
                                 "/employee/attendance",
-                                "/employee/attendance/my"
+                                "/employee/attendance/view"
                         ).hasAnyRole("ADMIN", "EMPLOYEE")
 
                         // All remaining APIs
