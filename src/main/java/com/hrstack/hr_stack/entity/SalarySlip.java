@@ -39,15 +39,14 @@ public class SalarySlip {
     @Column(name = "gross_salary",nullable = false,precision = 12,scale = 2)
     private BigDecimal grossSalary;
 
-    @Column(nullable = false,precision = 12,scale = 2)
+    @Column(name = "deductions",nullable = false,precision = 12,scale = 2)
     private BigDecimal deduction;
 
     @Column(name = "net_salary",nullable = false,precision = 12,scale = 2)
     private BigDecimal netSalary;
 
-    @Lob
-    @Column(name = "pdf_url")
-    private byte[] pdfUrl;
+    @Column(name = "pdf_data", columnDefinition ="BYTEA")
+    private byte[] pdfData;
 
     public SalarySlip() {
     }
@@ -132,11 +131,12 @@ public class SalarySlip {
         this.netSalary = netSalary;
     }
 
-    public byte[] getPdfUrl() {
-        return pdfUrl;
+    public byte[] getPdfData() {
+        return pdfData;
     }
 
-    public void setPdfUrl(byte[] pdfUrl) {
-        this.pdfUrl = pdfUrl;
+    public void setPdfData(byte[] pdfData) {
+        this.pdfData = pdfData;
     }
+
 }
