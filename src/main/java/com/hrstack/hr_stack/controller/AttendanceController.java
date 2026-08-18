@@ -31,54 +31,41 @@ public class AttendanceController {
             Authentication authentication,
             @RequestBody Map<String, String> request) {
 
-        try {
+        String email = authentication.getName();
 
-            String email = authentication.getName();
+        String enteredOtp = request.get("otp");
 
-            String enteredOtp = request.get("otp");
-
-            if (enteredOtp == null || enteredOtp.isBlank()) {
-                return ResponseEntity
-                        .badRequest()
-                        .body(Map.of(
-                                "error",
-                                "OTP is required"
-                        ));
-            }
-
-            Attendance attendance =
-                    attendanceService.markAttendance(
-                            email,
-                            enteredOtp
-                    );
-
-            return ResponseEntity.ok(attendance);
-
-        } catch (RuntimeException e) {
-
+        if (enteredOtp == null || enteredOtp.isBlank()) {
             return ResponseEntity
                     .badRequest()
                     .body(Map.of(
                             "error",
-                            e.getMessage()
+                            "OTP is required"
                     ));
         }
+
+        Attendance attendance =
+                attendanceService.markAttendance(
+                        email,
+                        enteredOtp
+                );
+
+        return ResponseEntity.ok(attendance);
     }
 
     @GetMapping("/attendance/view")
-    public ResponseEntity<?> viewAttendance(
+    public ResponseEntity<List<Attendance>> viewAttendance(
             Authentication authentication,
             @RequestParam(defaultValue = "MY") String scope) {
 
-        try {
-            String email = authentication.getName();
-            List<Attendance> attendances =
-                    attendanceService.viewAttendance(email, scope);
-            return ResponseEntity.ok(attendances);
-        } catch (RuntimeException e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(Map.of("error", e.getMessage()));
-        }
+        String email = authentication.getName();
+
+        List<Attendance> attendances =
+                attendanceService.viewAttendance(
+                        email,
+                        scope
+                );
+
+        return ResponseEntity.ok(attendances);
     }
 }
