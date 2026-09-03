@@ -1,41 +1,73 @@
-spring.application.name=hr-stack
+# =========================
+# Java / Maven
+# =========================
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
 
 # =========================
-# Database
+# IntelliJ IDEA
 # =========================
-spring.datasource.url=${DB_URL}
-spring.datasource.username=${DB_USERNAME}
-spring.datasource.password=${DB_PASSWORD}
-spring.datasource.driver-class-name=org.postgresql.Driver
-
-spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
 
 # =========================
-# Flyway
+# Eclipse / STS
 # =========================
-spring.flyway.enabled=true
-spring.flyway.baseline-on-migrate=false
-spring.flyway.validate-on-migrate=true
-spring.flyway.locations=classpath:db/migration
+.classpath
+.project
+.settings/
 
 # =========================
-# Server
+# VS Code
 # =========================
-server.port=8080
+.vscode/
 
 # =========================
-# JWT
+# OS files
 # =========================
-jwt.secret=${JWT_SECRET}
-jwt.expiration=${JWT_EXPIRATION}
+.DS_Store
+Thumbs.db
 
 # =========================
-# MinIO
+# Logs
 # =========================
-minio.endpoint=${MINIO_ENDPOINT}
-minio.access-key=${MINIO_ACCESS_KEY}
-minio.secret-key=${MINIO_SECRET_KEY}
-minio.bucket-name=salary-slips
+*.log
+logs/
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Spring Boot local config
+# =========================
+application-local.properties
+application-local.yml
+application-local.yaml
+
+# =========================
+# Database / local files
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.temp
+*.swp
+*.swo
