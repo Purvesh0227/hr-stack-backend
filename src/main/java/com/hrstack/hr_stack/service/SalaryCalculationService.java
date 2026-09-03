@@ -29,19 +29,22 @@ public class SalaryCalculationService {
     private final AttendanceRepository attendanceRepository;
     private final PdfGenerationService pdfGenerationService;
     private final EmployeeRepository employeeRepository;
+    private final SalaryFileStorageService salaryFileStorageService;
 
     public SalaryCalculationService(
             SalarySlipRepository salarySlipRepository,
             SalaryStructureRepository salaryStructureRepository,
             AttendanceRepository attendanceRepository,
             PdfGenerationService pdfGenerationService,
-            EmployeeRepository employeeRepository) {
+            EmployeeRepository employeeRepository,
+            SalaryFileStorageService salaryFileStorageService) {
 
         this.salarySlipRepository = salarySlipRepository;
         this.salaryStructureRepository = salaryStructureRepository;
         this.attendanceRepository = attendanceRepository;
         this.pdfGenerationService = pdfGenerationService;
         this.employeeRepository = employeeRepository;
+        this.salaryFileStorageService = salaryFileStorageService;
     }
 
     public SalarySlip generateSalary(
@@ -199,7 +202,16 @@ public class SalaryCalculationService {
                         pdfData
                 );
 
-        salarySlip.setPdfData(pdf);
+        // Upload the PDF to MinIO and store only the object key
+        String objectKey =
+                salaryFileStorageService.uploadSalarySlip(
+                        empId,
+                        month,
+                        year,
+                        pdf
+                );
+
+        salarySlip.setPdfObjectKey(objectKey);
 
         return salarySlipRepository.save(salarySlip);
     }

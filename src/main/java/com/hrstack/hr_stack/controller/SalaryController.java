@@ -3,6 +3,7 @@ package com.hrstack.hr_stack.controller;
 import com.hrstack.hr_stack.entity.SalarySlip;
 import com.hrstack.hr_stack.entity.SalaryStructure;
 import com.hrstack.hr_stack.service.SalaryCalculationService;
+import com.hrstack.hr_stack.service.SalaryFileStorageService;
 import com.hrstack.hr_stack.service.SalaryStructureService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
@@ -12,20 +13,22 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/employee/salary")
 @SecurityRequirement(name = "bearerAuth")
 public class SalaryController {
 
-    private final SalaryCalculationService  salaryCalculationService;
+    private final SalaryCalculationService salaryCalculationService;
     private final SalaryStructureService salaryStructureService;
+    private final SalaryFileStorageService salaryFileStorageService;
 
     public SalaryController(SalaryCalculationService salaryCalculationService,
-                            SalaryStructureService salaryStructureService) {
+                            SalaryStructureService salaryStructureService,
+                            SalaryFileStorageService salaryFileStorageService) {
         this.salaryCalculationService = salaryCalculationService;
         this.salaryStructureService = salaryStructureService;
+        this.salaryFileStorageService = salaryFileStorageService;
     }
 
     @PostMapping("/structure")
@@ -80,13 +83,18 @@ public class SalaryController {
                         empId, month, year
                 );
 
+        byte[] pdfBytes =
+                salaryFileStorageService.downloadSalarySlip(
+                        salarySlip.getPdfObjectKey()
+                );
+
         return ResponseEntity.ok()
                 .header(
                         "Content-Disposition",
                         "attachment; filename=salary-slip-" + empId + "-" + month + "-" + year + ".pdf"
                 )
                 .header("Content-Type", "application/pdf")
-                .body(salarySlip.getPdfData());
+                .body(pdfBytes);
     }
 
     @GetMapping("/view")
@@ -105,6 +113,5 @@ public class SalaryController {
 
         return ResponseEntity.ok(salarySlips);
     }
-
 
 }

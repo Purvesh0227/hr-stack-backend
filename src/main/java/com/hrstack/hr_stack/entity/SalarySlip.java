@@ -7,11 +7,11 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "salary_slip",
-uniqueConstraints = {
-        @UniqueConstraint(
-                columnNames = {"emp_id","month","year"}
-        )
-})
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        columnNames = {"emp_id","month","year"}
+                )
+        })
 public class SalarySlip {
 
     @Id
@@ -45,8 +45,8 @@ public class SalarySlip {
     @Column(name = "net_salary",nullable = false,precision = 12,scale = 2)
     private BigDecimal netSalary;
 
-    @Column(name = "pdf_data", columnDefinition ="BYTEA")
-    private byte[] pdfData;
+    @Column(name = "pdf_object_key")
+    private String pdfObjectKey;
 
     public SalarySlip() {
     }
@@ -131,12 +131,12 @@ public class SalarySlip {
         this.netSalary = netSalary;
     }
 
-    public byte[] getPdfData() {
-        return pdfData;
+    public String getPdfObjectKey() {
+        return pdfObjectKey;
     }
 
-    public void setPdfData(byte[] pdfData) {
-        this.pdfData = pdfData;
+    public void setPdfObjectKey(String pdfObjectKey) {
+        this.pdfObjectKey = pdfObjectKey;
     }
 
 }
