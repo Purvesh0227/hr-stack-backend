@@ -1,55 +1,71 @@
 package com.hrstack.hr_stack.service;
 
-import io.minio.GetObjectArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 
 @Service
 public class SalaryFileStorageService {
 
-    private final MinioClient minioClient;
+    private final MinioStorageService minioStorageService;
 
-    @Value("${minio.bucket-name}")
+    @Value("${minio.permanent-bucket}")
     private String bucketName;
 
-    public SalaryFileStorageService(MinioClient minioClient) {
-        this.minioClient = minioClient;
+    public SalaryFileStorageService(
+            MinioStorageService minioStorageService) {
+        this.minioStorageService = minioStorageService;
     }
 
-    public String uploadSalarySlip(String empId, int month, int year, byte[] pdfBytes) {
-        String objectKey = "salary-slips/" + year + "/" + month + "/" + empId + ".pdf";
+    // Upload salary slip
+    public String uploadSalarySlip(
+            String empId,
+            int month,
+            int year,
+            byte[] pdfBytes) {
 
-        try {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectKey)
-                            .stream(new ByteArrayInputStream(pdfBytes), pdfBytes.length, -1)
-                            .contentType("application/pdf")
-                            .build()
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to upload salary slip to MinIO", e);
-        }
+        String objectKey =
+                "salary-slips/"
+                        + year
+                        + "/"
+                        + month
+                        + "/"
+                        + empId
+                        + ".pdf";
+
+        minioStorageService.upload(
+                bucketName,
+                objectKey,
+                pdfBytes,
+                "application/pdf"
+        );
 
         return objectKey;
     }
 
+    // Download salary slip
     public byte[] downloadSalarySlip(String objectKey) {
-        try (InputStream stream = minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(objectKey)
-                        .build()
-        )) {
-            return stream.readAllBytes();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to fetch salary slip from MinIO", e);
-        }
+
+        return minioStorageService.download(
+                bucketName,
+                objectKey
+        );
+    }
+
+    // Delete salary slip
+    public void deleteSalarySlip(String objectKey) {
+
+        minioStorageService.delete(
+                bucketName,
+                objectKey
+        );
+    }
+
+    //signed url
+    public String getSalarySlipSignedUrl(String objectKey) {
+        return minioStorageService.getSignedUrl(
+                bucketName,
+                objectKey
+        );
     }
 }
+

@@ -12,8 +12,11 @@ public class MinioBucketInitializer {
 
     private final MinioClient minioClient;
 
-    @Value("${minio.bucket-name}")
-    private String bucketName;
+    @Value("${minio.temp-bucket}")
+    private String tempBucket;
+
+    @Value("${minio.permanent-bucket}")
+    private String permanentBucket;
 
     public MinioBucketInitializer(MinioClient minioClient) {
         this.minioClient = minioClient;
@@ -21,6 +24,11 @@ public class MinioBucketInitializer {
 
     @PostConstruct
     public void init() throws Exception {
+        ensureBucketExists(tempBucket);
+        ensureBucketExists(permanentBucket);
+    }
+
+    private void ensureBucketExists(String bucketName) throws Exception {
         boolean exists = minioClient.bucketExists(
                 BucketExistsArgs.builder().bucket(bucketName).build()
         );

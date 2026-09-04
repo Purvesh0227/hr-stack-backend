@@ -113,5 +113,32 @@ public class SalaryController {
 
         return ResponseEntity.ok(salarySlips);
     }
+    @GetMapping("/{empId}/salary-slip/url")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
+    public ResponseEntity<String> getSalarySlipUrl(
+            @PathVariable String empId,
+            @RequestParam int month,
+            @RequestParam int year) {
+
+        SalarySlip salarySlip =
+                salaryCalculationService.getSalarySlip(
+                        empId,
+                        month,
+                        year
+                );
+
+        System.out.println("PDF OBJECT KEY = "
+                + salarySlip.getPdfObjectKey());
+
+        String signedUrl =
+                salaryFileStorageService.getSalarySlipSignedUrl(
+                        salarySlip.getPdfObjectKey()
+                );
+
+        System.out.println("SIGNED URL = " + signedUrl);
+
+        return ResponseEntity.ok(signedUrl);
+    }
+
 
 }
