@@ -3,7 +3,6 @@ package com.hrstack.hr_stack.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class TempToPermanentStorageService {
 
@@ -15,22 +14,73 @@ public class TempToPermanentStorageService {
     @Value("${minio.permanent-bucket}")
     private String permanentBucket;
 
+    // 2 months ≈ 60 days
+    @Value("${salary-slip.replacement-window-months}")
+    private long replacementWindowMonths;
+
     public TempToPermanentStorageService(
             MinioStorageService minioStorageService) {
+
         this.minioStorageService = minioStorageService;
     }
 
-    public String moveToPermanent(
+    public String replaceSalarySlip(
             String tempObjectKey,
-            String permanentObjectKey) {
+            String permanentObjectKey,
+            Long generatedAt) {
 
-        minioStorageService.move(
-                tempBucket,
-                tempObjectKey,
-                permanentBucket,
-                permanentObjectKey
-        );
+        long currentTime =
+                System.currentTimeMillis();
 
-        return permanentObjectKey;
+        long replacementWindow =
+                replacementWindowMonths
+                        * 30L
+                        * 24
+                        * 60
+                        * 60
+                        * 1000;
+        long expiryTime =
+                generatedAt + replacementWindow;
+
+        if (currentTime > expiryTime) {
+
+            throw new RuntimeException(
+                    "Salary slip replacement period has expired"
+            );
+        }
+
+        boolean tempFileExists =
+                minioStorageService.exists(
+                        tempBucket,
+                        tempObjectKey
+                );
+
+        if (!tempFileExists) {
+
+            throw new RuntimeException(
+                    "Replacement file not found in temporary bucket"
+            );
+        }
+
+
+        boolean permanentFileExists =
+                minioStorageService.exists(
+                        permanentBucket,
+                        permanentObjectKey
+                );
+
+        if (permanentFileExists) {
+
+            minioStorageService.move(
+                    tempBucket,
+                    tempObjectKey,
+                    permanentBucket,
+                    permanentObjectKey
+            );
+
+            return permanentObjectKey;
+        }
+
+        return tempObjectKey;
     }
 }

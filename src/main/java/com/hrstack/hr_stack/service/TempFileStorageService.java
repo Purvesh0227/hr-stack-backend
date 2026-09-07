@@ -3,6 +3,8 @@ package com.hrstack.hr_stack.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class TempFileStorageService {
 
@@ -16,24 +18,31 @@ public class TempFileStorageService {
         this.minioStorageService = minioStorageService;
     }
 
-    public String uploadTempFile(
-            String fileName,
-            byte[] fileBytes,
-            String contentType) {
-
-        String objectKey = "temp/" + fileName;
+    public String uploadSalarySlipToTemp(
+            String empId,
+            int month,
+            int year,
+            byte[] pdfBytes){
+        String objectKey =
+                "salary-slips/"
+                +year
+                +"/"
+                +month
+                +"/"
+                +empId
+                +".pdf";
 
         minioStorageService.upload(
                 bucketName,
                 objectKey,
-                fileBytes,
-                contentType
-        );
+                pdfBytes,
+                "application/pdf");
 
         return objectKey;
     }
 
-    public byte[] downloadTempFile(String objectKey) {
+    public byte[] downloadTempFile(
+            String objectKey) {
 
         return minioStorageService.download(
                 bucketName,
@@ -41,9 +50,19 @@ public class TempFileStorageService {
         );
     }
 
-    public void deleteTempFile(String objectKey) {
+    public void deleteTempFile(
+            String objectKey) {
 
         minioStorageService.delete(
+                bucketName,
+                objectKey
+        );
+    }
+
+    public boolean tempFileExists(
+            String objectKey) {
+
+        return minioStorageService.exists(
                 bucketName,
                 objectKey
         );

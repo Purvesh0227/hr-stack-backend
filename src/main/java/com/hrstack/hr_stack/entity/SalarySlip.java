@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 
+
 @Entity
 @Table(name = "salary_slip",
         uniqueConstraints = {
@@ -47,6 +48,31 @@ public class SalarySlip {
 
     @Column(name = "pdf_object_key")
     private String pdfObjectKey;
+
+    @Column(name = "generated_at",nullable = false)
+    private Long generatedAt;
+
+    @Transient
+    private String pdfUrl;
+
+    public String getPdfUrl() {
+        return pdfUrl;
+    }
+
+    public void setPdfUrl(String pdfUrl) {
+        this.pdfUrl = pdfUrl;
+    }
+
+    @Transient
+    private boolean replaceAllowed;
+
+    public boolean isReplaceAllowed() {
+        return replaceAllowed;
+    }
+
+    public void setReplaceAllowed(boolean replaceAllowed) {
+        this.replaceAllowed = replaceAllowed;
+    }
 
     public SalarySlip() {
     }
@@ -139,4 +165,11 @@ public class SalarySlip {
         this.pdfObjectKey = pdfObjectKey;
     }
 
+    public Long getGeneratedAt() {
+        return generatedAt;
+    }
+
+    public void setGeneratedAt(Long generatedAt) {
+        this.generatedAt = generatedAt;
+    }
 }

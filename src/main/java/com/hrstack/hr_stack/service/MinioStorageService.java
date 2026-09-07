@@ -1,10 +1,7 @@
 package com.hrstack.hr_stack.service;
 
-import io.minio.GetObjectArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
 import org.springframework.stereotype.Service;
-import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.http.Method;
 
 import java.io.ByteArrayInputStream;
@@ -134,6 +131,25 @@ public class MinioStorageService {
             );
         } catch (Exception e) {
             throw new RuntimeException("Failed To Generate Signed Url "+e);
+        }
+    }
+
+    public boolean exists(
+            String bucketName,
+            String objectKey) {
+
+        try {
+            minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectKey)
+                            .build()
+            );
+
+            return true;
+
+        } catch (Exception e) {
+            return false;
         }
     }
 }

@@ -71,6 +71,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String role = employee.getRole();
 
+        System.out.println("JWT EMAIL = " + email);
+        System.out.println("DB ROLE = " + role);
+        System.out.println("AUTHORITY = ROLE_" + role.toUpperCase());
+
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         email,
@@ -86,6 +90,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder
                 .getContext()
                 .setAuthentication(authentication);
+        System.out.println(
+                "AUTHENTICATED = "
+                        + SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .isAuthenticated()
+        );
+
+        System.out.println(
+                "AUTHORITIES = "
+                        + SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getAuthorities()
+        );
 
         filterChain.doFilter(request, response);
     }

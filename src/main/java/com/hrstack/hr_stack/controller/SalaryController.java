@@ -5,11 +5,11 @@ import com.hrstack.hr_stack.entity.SalaryStructure;
 import com.hrstack.hr_stack.service.SalaryCalculationService;
 import com.hrstack.hr_stack.service.SalaryFileStorageService;
 import com.hrstack.hr_stack.service.SalaryStructureService;
+import com.hrstack.hr_stack.service.TempToPermanentStorageService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
@@ -22,13 +22,18 @@ public class SalaryController {
     private final SalaryCalculationService salaryCalculationService;
     private final SalaryStructureService salaryStructureService;
     private final SalaryFileStorageService salaryFileStorageService;
+    private final TempToPermanentStorageService tempToPermanentStorageService;
 
-    public SalaryController(SalaryCalculationService salaryCalculationService,
-                            SalaryStructureService salaryStructureService,
-                            SalaryFileStorageService salaryFileStorageService) {
+    public SalaryController(
+            SalaryCalculationService salaryCalculationService,
+            SalaryStructureService salaryStructureService,
+            SalaryFileStorageService salaryFileStorageService,
+            TempToPermanentStorageService tempToPermanentStorageService) {
+
         this.salaryCalculationService = salaryCalculationService;
         this.salaryStructureService = salaryStructureService;
         this.salaryFileStorageService = salaryFileStorageService;
+        this.tempToPermanentStorageService = tempToPermanentStorageService;
     }
 
     @PostMapping("/structure")
@@ -71,6 +76,46 @@ public class SalaryController {
         return ResponseEntity.ok(salarySlip);
     }
 
+    @PostMapping("/replace")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SalarySlip> replaceSalarySlip(
+            @RequestParam String empId,
+            @RequestParam int month,
+            @RequestParam int year,
+            @RequestParam String tempObjectKey) {
+
+        SalarySlip salarySlip =
+                salaryCalculationService.getSalarySlip(
+                        empId,
+                        month,
+                        year
+                );
+
+        String permanentObjectKey =
+                "salary-slips/"
+                        + year
+                        + "/"
+                        + month
+                        + "/"
+                        + empId
+                        + ".pdf";
+
+        String updatedObjectKey = tempToPermanentStorageService.replaceSalarySlip(
+                tempObjectKey,
+                permanentObjectKey,
+                salarySlip.getGeneratedAt()
+        );
+
+        salarySlip.setPdfObjectKey(permanentObjectKey);
+
+        SalarySlip updatedSalarySlip =
+                salaryCalculationService.updateSalarySlip(
+                        salarySlip
+                );
+
+        return ResponseEntity.ok(updatedSalarySlip);
+    }
+
     @GetMapping("/download")
     @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
     public ResponseEntity<byte[]> downloadSalarySlip(
@@ -84,14 +129,15 @@ public class SalaryController {
                 );
 
         byte[] pdfBytes =
-                salaryFileStorageService.downloadSalarySlip(
+                salaryFileStorageService.downloadSalarySlipFromEitherBucket(
                         salarySlip.getPdfObjectKey()
                 );
 
         return ResponseEntity.ok()
                 .header(
                         "Content-Disposition",
-                        "attachment; filename=salary-slip-" + empId + "-" + month + "-" + year + ".pdf"
+                        "attachment; filename=salary-slip-"
+                                + empId + "-" + month + "-" + year + ".pdf"
                 )
                 .header("Content-Type", "application/pdf")
                 .body(pdfBytes);
@@ -113,6 +159,7 @@ public class SalaryController {
 
         return ResponseEntity.ok(salarySlips);
     }
+
     @GetMapping("/{empId}/salary-slip/url")
     @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
     public ResponseEntity<String> getSalarySlipUrl(
@@ -127,18 +174,20 @@ public class SalaryController {
                         year
                 );
 
-        System.out.println("PDF OBJECT KEY = "
-                + salarySlip.getPdfObjectKey());
+        System.out.println(
+                "PDF OBJECT KEY = "
+                        + salarySlip.getPdfObjectKey()
+        );
 
         String signedUrl =
-                salaryFileStorageService.getSalarySlipSignedUrl(
+                salaryFileStorageService.getSalarySlipSignedUrlFromEitherBucket(
                         salarySlip.getPdfObjectKey()
                 );
 
-        System.out.println("SIGNED URL = " + signedUrl);
+        System.out.println(
+                "SIGNED URL = " + signedUrl
+        );
 
         return ResponseEntity.ok(signedUrl);
     }
-
-
 }

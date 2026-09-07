@@ -14,6 +14,8 @@ import com.hrstack.hr_stack.repository.SalaryStructureRepository;
 import com.hrstack.hr_stack.util.SalaryCalculationUtil;
 import org.springframework.stereotype.Service;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
@@ -24,6 +26,7 @@ import java.util.Map;
 @Service
 public class SalaryCalculationService {
 
+    private final TempFileStorageService tempFileStorageService;
     private final SalarySlipRepository salarySlipRepository;
     private final SalaryStructureRepository salaryStructureRepository;
     private final AttendanceRepository attendanceRepository;
@@ -31,13 +34,18 @@ public class SalaryCalculationService {
     private final EmployeeRepository employeeRepository;
     private final SalaryFileStorageService salaryFileStorageService;
 
+
+    @Value("${salary-slip.replacement-window-months}")
+    private long replacementWindowMonths;
+
     public SalaryCalculationService(
             SalarySlipRepository salarySlipRepository,
             SalaryStructureRepository salaryStructureRepository,
             AttendanceRepository attendanceRepository,
             PdfGenerationService pdfGenerationService,
             EmployeeRepository employeeRepository,
-            SalaryFileStorageService salaryFileStorageService) {
+            SalaryFileStorageService salaryFileStorageService,
+            TempFileStorageService tempFileStorageService) {
 
         this.salarySlipRepository = salarySlipRepository;
         this.salaryStructureRepository = salaryStructureRepository;
@@ -45,6 +53,7 @@ public class SalaryCalculationService {
         this.pdfGenerationService = pdfGenerationService;
         this.employeeRepository = employeeRepository;
         this.salaryFileStorageService = salaryFileStorageService;
+        this.tempFileStorageService = tempFileStorageService;
     }
 
     public SalarySlip generateSalary(
@@ -204,7 +213,7 @@ public class SalaryCalculationService {
 
         // Upload the PDF to MinIO and store only the object key
         String objectKey =
-                salaryFileStorageService.uploadSalarySlip(
+                tempFileStorageService.uploadSalarySlipToTemp(
                         empId,
                         month,
                         year,
@@ -212,6 +221,7 @@ public class SalaryCalculationService {
                 );
 
         salarySlip.setPdfObjectKey(objectKey);
+        salarySlip.setGeneratedAt(System.currentTimeMillis());
 
         return salarySlipRepository.save(salarySlip);
     }
@@ -235,6 +245,12 @@ public class SalaryCalculationService {
                 );
     }
 
+    public SalarySlip updateSalarySlip(
+            SalarySlip salarySlip) {
+
+        return salarySlipRepository.save(salarySlip);
+    }
+
     public List<SalarySlip> viewSalarySlips(
             String email,
             String scope) {
@@ -248,13 +264,15 @@ public class SalaryCalculationService {
                                 )
                         );
 
+        List<SalarySlip> salarySlips;
+
         if ("MY".equalsIgnoreCase(scope)) {
 
-            return salarySlipRepository
-                    .findByEmpId(employee.getEmpId());
-        }
+            salarySlips =
+                    salarySlipRepository
+                            .findByEmpId(employee.getEmpId());
 
-        if ("ALL".equalsIgnoreCase(scope)) {
+        } else if ("ALL".equalsIgnoreCase(scope)) {
 
             if (!"ADMIN".equalsIgnoreCase(
                     employee.getRole())) {
@@ -264,11 +282,54 @@ public class SalaryCalculationService {
                 );
             }
 
-            return salarySlipRepository.findAll();
+            salarySlips =
+                    salarySlipRepository.findAll();
+
+        } else {
+
+            throw new BadRequestException(
+                    "Invalid salary slip scope. Use MY or ALL"
+            );
         }
 
-        throw new BadRequestException(
-                "Invalid salary slip scope. Use MY or ALL"
-        );
+        // Generate signed URL for every salary slip
+        // Generate signed URL and replacement status
+        salarySlips.forEach(salarySlip -> {
+
+            if (salarySlip.getPdfObjectKey() != null) {
+
+                String signedUrl =
+                        salaryFileStorageService
+                                .getSalarySlipSignedUrlFromEitherBucket(
+                                        salarySlip.getPdfObjectKey()
+                                );
+
+                salarySlip.setPdfUrl(signedUrl);
+            }
+
+            if (salarySlip.getGeneratedAt() != null) {
+
+                long replacementWindow =
+                        replacementWindowMonths
+                                * 30L
+                                * 24
+                                * 60
+                                * 60
+                                * 1000;
+
+                long expiryTime =
+                        salarySlip.getGeneratedAt()
+                                + replacementWindow;
+
+                boolean replaceAllowed =
+                        System.currentTimeMillis() <= expiryTime;
+
+                salarySlip.setReplaceAllowed(replaceAllowed);
+            } else {
+                salarySlip.setReplaceAllowed(false);
+            }
+        });
+
+        return salarySlips;
     }
 }
