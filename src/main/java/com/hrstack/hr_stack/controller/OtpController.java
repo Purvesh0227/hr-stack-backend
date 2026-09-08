@@ -1,5 +1,5 @@
 package com.hrstack.hr_stack.controller;
-
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.hrstack.hr_stack.dto.CreateOtpRequest;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.Otp;
@@ -17,6 +17,7 @@ import java.util.Map;
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/employee")
+@Tag(name = "Otp")
 @CrossOrigin(origins = "http://localhost:5173")
 public class OtpController {
 

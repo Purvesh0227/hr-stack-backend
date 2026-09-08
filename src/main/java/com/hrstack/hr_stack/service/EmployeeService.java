@@ -191,6 +191,36 @@ public class EmployeeService {
                 );
     }
 
+    // Update employee details
+    public Employee updateEmployee(
+            UUID id,
+            Employee updatedEmployee) {
+
+        Employee existingEmployee =
+                employeeRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Employee not found"
+                                )
+                        );
+
+        existingEmployee.setFirstName(
+                updatedEmployee.getFirstName()
+        );
+
+        existingEmployee.setLastName(
+                updatedEmployee.getLastName()
+        );
+
+        existingEmployee.setMobile(
+                updatedEmployee.getMobile()
+        );
+
+        return employeeRepository.save(existingEmployee);
+    }
+
+
+
     // Delete employee by UUID
     public void deleteEmployee(UUID id) {
 

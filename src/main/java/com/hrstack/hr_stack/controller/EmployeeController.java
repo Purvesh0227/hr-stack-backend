@@ -13,10 +13,11 @@ import java.util.Map;
 import java.util.List;
 
 import java.util.UUID;
-
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/employee")
+@Tag(name = "Employee")
 @CrossOrigin(origins = "http://localhost:5173")
 public class EmployeeController {
 
@@ -103,6 +104,17 @@ public class EmployeeController {
     @GetMapping("/{uuid}")
     public Employee getEmployeeById(@PathVariable UUID uuid) {
         return employeeService.getEmployeeById(uuid);
+    }
+
+    // Update employee details
+    @PutMapping("/{uuid}")
+    public ResponseEntity<Employee> updateEmployee(
+            @PathVariable UUID uuid,
+            @RequestBody Employee employee) {
+
+        Employee updatedEmployee = employeeService.updateEmployee(uuid, employee);
+
+        return ResponseEntity.ok(updatedEmployee);
     }
 
     //to delete emp by uuid

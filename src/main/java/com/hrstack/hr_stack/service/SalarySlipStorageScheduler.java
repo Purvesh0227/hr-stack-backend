@@ -20,8 +20,8 @@ public class SalarySlipStorageScheduler {
     @Value("${minio.permanent-bucket}")
     private String permanentBucket;
 
-    @Value("${salary-slip.replacement-window-months}")
-    private long storageWindowMonths;
+    @Value("${salary-slip.storage-window-hours}")
+    private long storageWindowHours;
 
     public SalarySlipStorageScheduler(
             SalarySlipRepository salarySlipRepository,
@@ -32,7 +32,8 @@ public class SalarySlipStorageScheduler {
     }
 
 //    @Scheduled(cron = "0 */2 * * * *")
-    @Scheduled(cron = "0 0 0 * * *")
+//    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(fixedRate = 12 * 60 * 60 * 1000)
     public void moveExpiredSalarySlips() {
 
         List<SalarySlip> salarySlips =
@@ -51,10 +52,8 @@ public class SalarySlipStorageScheduler {
             }
 
             long storageWindow =
-                    storageWindowMonths
-                            * 30L
-                            * 24
-                            * 60
+                    storageWindowHours
+                            * 60L
                             * 60
                             * 1000;
 
