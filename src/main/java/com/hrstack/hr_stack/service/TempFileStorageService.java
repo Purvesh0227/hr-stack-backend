@@ -3,8 +3,6 @@ package com.hrstack.hr_stack.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 public class TempFileStorageService {
 
@@ -16,29 +14,6 @@ public class TempFileStorageService {
     public TempFileStorageService(
             MinioStorageService minioStorageService) {
         this.minioStorageService = minioStorageService;
-    }
-
-    public String uploadSalarySlipToTemp(
-            String empId,
-            int month,
-            int year,
-            byte[] pdfBytes){
-        String objectKey =
-                "salary-slips/"
-                +year
-                +"/"
-                +month
-                +"/"
-                +empId
-                +".pdf";
-
-        minioStorageService.upload(
-                bucketName,
-                objectKey,
-                pdfBytes,
-                "application/pdf");
-
-        return objectKey;
     }
 
     public byte[] downloadTempFile(
@@ -66,5 +41,49 @@ public class TempFileStorageService {
                 bucketName,
                 objectKey
         );
+    }
+
+    public String generateUploadUrl(
+            String empId,
+            int month,
+            int year) {
+
+        String objectKey =
+                "salary-slips/"
+                        + year
+                        + "/"
+                        + month
+                        + "/"
+                        + empId
+                        + ".pdf";
+
+        return minioStorageService.getPresignedUploadUrl(
+                bucketName,
+                objectKey
+        );
+    }
+    public String uploadSalarySlipToTemp(
+            String empId,
+            int month,
+            int year,
+            byte[] pdfBytes) {
+
+        String objectKey =
+                "salary-slips/"
+                        + year
+                        + "/"
+                        + month
+                        + "/"
+                        + empId
+                        + ".pdf";
+
+        minioStorageService.upload(
+                bucketName,
+                objectKey,
+                pdfBytes,
+                "application/pdf"
+        );
+
+        return objectKey;
     }
 }

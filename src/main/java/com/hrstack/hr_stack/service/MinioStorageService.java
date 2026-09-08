@@ -152,5 +152,25 @@ public class MinioStorageService {
             return false;
         }
     }
+    public String getPresignedUploadUrl(
+            String bucketName,
+            String objectKey) {
+
+        try {
+            return minioClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.PUT)
+                            .bucket(bucketName)
+                            .object(objectKey)
+                            .expiry(60 * 15)
+                            .build()
+            );
+
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Failed to generate upload URL", e
+            );
+        }
+    }
 }
 

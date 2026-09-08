@@ -29,8 +29,7 @@ public class TempToPermanentStorageService {
             String permanentObjectKey,
             Long generatedAt) {
 
-        long currentTime =
-                System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
 
         long replacementWindow =
                 replacementWindowMonths
@@ -39,30 +38,23 @@ public class TempToPermanentStorageService {
                         * 60
                         * 60
                         * 1000;
-        long expiryTime =
-                generatedAt + replacementWindow;
+
+        long expiryTime = generatedAt + replacementWindow;
 
         if (currentTime > expiryTime) {
-
             throw new RuntimeException(
                     "Salary slip replacement period has expired"
             );
         }
 
-        boolean tempFileExists =
-                minioStorageService.exists(
-                        tempBucket,
-                        tempObjectKey
-                );
-
-        if (!tempFileExists) {
-
+        // New replacement file must exist in TEMP
+        if (!minioStorageService.exists(tempBucket, tempObjectKey)) {
             throw new RuntimeException(
                     "Replacement file not found in temporary bucket"
             );
         }
 
-
+        // Check where the current salary slip exists
         boolean permanentFileExists =
                 minioStorageService.exists(
                         permanentBucket,
@@ -71,6 +63,7 @@ public class TempToPermanentStorageService {
 
         if (permanentFileExists) {
 
+            // Existing slip is permanent → replace it
             minioStorageService.move(
                     tempBucket,
                     tempObjectKey,
@@ -81,6 +74,8 @@ public class TempToPermanentStorageService {
             return permanentObjectKey;
         }
 
+        // Existing slip is still temporary.
+        // The new upload already overwrote the same TEMP object.
         return tempObjectKey;
     }
 }
