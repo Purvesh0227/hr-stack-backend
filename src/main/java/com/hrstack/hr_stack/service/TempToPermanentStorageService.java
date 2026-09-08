@@ -14,7 +14,7 @@ public class TempToPermanentStorageService {
     @Value("${minio.permanent-bucket}")
     private String permanentBucket;
 
-    // 2 months ≈ 60 days
+    // Replacement allowed for 2 months
     @Value("${salary-slip.replacement-window-months}")
     private long replacementWindowMonths;
 
@@ -29,6 +29,7 @@ public class TempToPermanentStorageService {
             String permanentObjectKey,
             Long generatedAt) {
 
+        // Calculate replacement expiry time
         long currentTime = System.currentTimeMillis();
 
         long replacementWindow =
@@ -39,43 +40,39 @@ public class TempToPermanentStorageService {
                         * 60
                         * 1000;
 
-        long expiryTime = generatedAt + replacementWindow;
+        long expiryTime =
+                generatedAt + replacementWindow;
 
+        // Check replacement window
         if (currentTime > expiryTime) {
             throw new RuntimeException(
                     "Salary slip replacement period has expired"
             );
         }
 
-        // New replacement file must exist in TEMP
-        if (!minioStorageService.exists(tempBucket, tempObjectKey)) {
+        // Verify replacement file exists in TEMP
+        boolean tempFileExists =
+                minioStorageService.exists(
+                        tempBucket,
+                        tempObjectKey
+                );
+
+        if (!tempFileExists) {
             throw new RuntimeException(
                     "Replacement file not found in temporary bucket"
             );
         }
 
-        // Check where the current salary slip exists
-        boolean permanentFileExists =
-                minioStorageService.exists(
-                        permanentBucket,
-                        permanentObjectKey
-                );
+        // Immediately move replacement file
+        // TEMP → PERMANENT
+        minioStorageService.move(
+                tempBucket,
+                tempObjectKey,
+                permanentBucket,
+                permanentObjectKey
+        );
 
-        if (permanentFileExists) {
-
-            // Existing slip is permanent → replace it
-            minioStorageService.move(
-                    tempBucket,
-                    tempObjectKey,
-                    permanentBucket,
-                    permanentObjectKey
-            );
-
-            return permanentObjectKey;
-        }
-
-        // Existing slip is still temporary.
-        // The new upload already overwrote the same TEMP object.
-        return tempObjectKey;
+        // DB should point to permanent object
+        return permanentObjectKey;
     }
 }
