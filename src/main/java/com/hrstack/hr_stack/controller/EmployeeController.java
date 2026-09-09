@@ -14,6 +14,7 @@ import java.util.List;
 
 import java.util.UUID;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/employee")
@@ -123,4 +124,26 @@ public class EmployeeController {
         employeeService.deleteEmployee(uuid);
         return ResponseEntity.ok(Map.of("message", "Employee deleted successfully"));
     }
+
+    //request doc from emp
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{uuid}/request-documents")
+    public ResponseEntity<Employee> requestDocuments(
+            @PathVariable UUID uuid) {
+
+        Employee employee =
+                employeeService.requestDocuments(uuid);
+
+        return ResponseEntity.ok(employee);
+    }
+
+    //activate employee
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{uuid}/activate")
+    public ResponseEntity<Employee> activateEmployee(@PathVariable UUID uuid){
+        Employee employee = employeeService.activateEmployee(uuid);
+        return ResponseEntity.ok(employee);
+    }
+
 }

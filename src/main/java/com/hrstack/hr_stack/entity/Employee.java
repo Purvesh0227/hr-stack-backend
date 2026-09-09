@@ -78,6 +78,13 @@ public class Employee {
     //Role
     private String role;
 
+
+    @Column(nullable = false)
+    private String status = "PENDING";
+
+    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
+    private EmployeeDocument documents;
+
     public Employee() {
     }
 
@@ -154,5 +161,21 @@ public class Employee {
 
     public void setEmpId(String empId) {
         this.empId = empId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public EmployeeDocument getDocuments() {
+        return documents;
+    }
+
+    public void setDocuments(EmployeeDocument documents) {
+        this.documents = documents;
     }
 }

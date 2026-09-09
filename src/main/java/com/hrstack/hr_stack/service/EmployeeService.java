@@ -4,20 +4,38 @@ import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.exception.AccessDeniedException;
 import com.hrstack.hr_stack.exception.BadRequestException;
 import com.hrstack.hr_stack.exception.ResourceNotFoundException;
+import com.hrstack.hr_stack.repository.EmployeeDocumentRepository;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Year;
 import java.util.List;
 import java.util.UUID;
+import com.hrstack.hr_stack.entity.EmployeeDocument;
+import com.hrstack.hr_stack.repository.EmployeeDocumentRepository;
+
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class EmployeeService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private EmployeeDocumentRepository employeeDocumentRepository;
+
+    @Autowired
+    private MinioStorageService minioStorageService;
+
+    @Value("${minio.temp-bucket}")
+    private String tempBucket;
+
+    @Value("${minio.permanent-bucket}")
+    private String permanentBucket;
 
     private final BCryptPasswordEncoder encoder =
             new BCryptPasswordEncoder();
@@ -281,5 +299,106 @@ public class EmployeeService {
                         "%03d",
                         nextSequence
                 );
+    }
+
+    //request employee docs
+
+    public Employee requestDocuments(UUID id) {
+        Employee employee =
+                    employeeRepository.findById(id)
+                            .orElseThrow(()->new ResourceNotFoundException("Employee not found with id: " + id));
+        employee.setStatus("PENDING_VERIFICATION");
+
+        return employeeRepository.save(employee);
+    }
+
+    //activate employee after doc verification
+
+    // Activate employee after document verification
+    public Employee activateEmployee(UUID id) {
+
+        Employee employee =
+                employeeRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Employee not found"
+                                )
+                        );
+
+        if (!"PENDING_VERIFICATION".equalsIgnoreCase(
+                employee.getStatus())) {
+
+            throw new BadRequestException(
+                    "Employee is not pending document verification"
+            );
+        }
+
+        EmployeeDocument documents =
+                employeeDocumentRepository
+                        .findByEmployeeId(id)
+                        .orElseThrow(() ->
+                                new BadRequestException(
+                                        "Employee documents not submitted"
+                                )
+                        );
+
+        if (documents.getIdProofType() == null
+                || documents.getIdProofNumber() == null
+                || documents.getIdProofObjectKey() == null) {
+
+            throw new BadRequestException(
+                    "ID proof is incomplete"
+            );
+        }
+
+        if (documents.getAddressProofType() == null
+                || documents.getAddressProofNumber() == null
+                || documents.getAddressProofObjectKey() == null) {
+
+            throw new BadRequestException(
+                    "Address proof is incomplete"
+            );
+        }
+
+        // Verify ID proof exists in TEMP bucket
+        if (!minioStorageService.exists(
+                tempBucket,
+                documents.getIdProofObjectKey())) {
+
+            throw new BadRequestException(
+                    "ID proof file not found in temporary storage"
+            );
+        }
+
+// Verify address proof exists in TEMP bucket
+        if (!minioStorageService.exists(
+                tempBucket,
+                documents.getAddressProofObjectKey())) {
+
+            throw new BadRequestException(
+                    "Address proof file not found in temporary storage"
+            );
+        }
+
+// Move ID proof to permanent bucket
+        minioStorageService.move(
+                tempBucket,
+                documents.getIdProofObjectKey(),
+                permanentBucket,
+                documents.getIdProofObjectKey()
+        );
+
+// Move address proof to permanent bucket
+        minioStorageService.move(
+                tempBucket,
+                documents.getAddressProofObjectKey(),
+                permanentBucket,
+                documents.getAddressProofObjectKey()
+        );
+
+// Activate employee
+        employee.setStatus("ACTIVE");
+
+        return employeeRepository.save(employee);
     }
 }
