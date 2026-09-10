@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 import java.util.UUID;
-
+import com.hrstack.hr_stack.enums.EmployeeStatus;
 
 @Entity
 @Table(name = "users",
@@ -80,7 +80,7 @@ public class Employee {
 
 
     @Column(nullable = false)
-    private String status = "PENDING";
+    private String status = EmployeeStatus.PENDING.name();
 
     @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
     private EmployeeDocument documents;

@@ -18,7 +18,7 @@ import com.hrstack.hr_stack.entity.EmployeeDocument;
 import com.hrstack.hr_stack.repository.EmployeeDocumentRepository;
 
 import org.springframework.beans.factory.annotation.Value;
-
+import com.hrstack.hr_stack.enums.EmployeeStatus;
 @Service
 public class EmployeeService {
 
@@ -307,7 +307,7 @@ public class EmployeeService {
         Employee employee =
                     employeeRepository.findById(id)
                             .orElseThrow(()->new ResourceNotFoundException("Employee not found with id: " + id));
-        employee.setStatus("PENDING_VERIFICATION");
+        employee.setStatus(EmployeeStatus.PENDING_VERIFICATION.name());
 
         return employeeRepository.save(employee);
     }
@@ -325,8 +325,8 @@ public class EmployeeService {
                                 )
                         );
 
-        if (!"PENDING_VERIFICATION".equalsIgnoreCase(
-                employee.getStatus())) {
+        if (!EmployeeStatus.PENDING_VERIFICATION.name()
+                .equalsIgnoreCase(employee.getStatus())) {
 
             throw new BadRequestException(
                     "Employee is not pending document verification"
@@ -397,7 +397,7 @@ public class EmployeeService {
         );
 
 // Activate employee
-        employee.setStatus("ACTIVE");
+        employee.setStatus(EmployeeStatus.ACTIVE.name());
 
         return employeeRepository.save(employee);
     }

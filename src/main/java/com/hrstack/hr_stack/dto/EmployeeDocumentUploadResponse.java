@@ -12,7 +12,7 @@ public class EmployeeDocumentUploadResponse {
 
     public String getUploadUrl() {
         return uploadUrl;
-    }
+    }    
 
     public void setUploadUrl(String uploadUrl) {
         this.uploadUrl = uploadUrl;
