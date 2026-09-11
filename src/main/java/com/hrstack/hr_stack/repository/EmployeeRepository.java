@@ -17,4 +17,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
 
     Optional<Employee> findByEmpId(String empId);
 
+    List<Employee> findByStatusIgnoreCase(String status);
+
 }

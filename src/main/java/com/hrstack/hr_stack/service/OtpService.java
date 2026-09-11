@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.service;
 
+import com.hrstack.hr_stack.dto.AttendanceOtpSendStatus;
 import com.hrstack.hr_stack.entity.Otp;
 import com.hrstack.hr_stack.repository.OtpRepository;
 import org.springframework.stereotype.Service;
@@ -12,11 +13,16 @@ import java.util.UUID;
 public class OtpService {
 
     private final OtpRepository otpRepository;
+    private final NotificationService notificationService;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public OtpService(OtpRepository otpRepository) {
+    public OtpService(
+            OtpRepository otpRepository,
+            NotificationService notificationService) {
+
         this.otpRepository = otpRepository;
+        this.notificationService = notificationService;
     }
 
     public Otp createOtp(
@@ -67,6 +73,15 @@ public class OtpService {
         otp.setDate(otpDate);
         otp.setDepartment(department);
 
-        return otpRepository.save(otp);
+        // Save OTP first
+        Otp savedOtp = otpRepository.save(otp);
+
+        // Send OTP to active employees
+        AttendanceOtpSendStatus sendStatus =
+                notificationService.broadcastAttendanceOtp(
+                        savedOtp.getOtp()
+                );
+
+        return savedOtp;
     }
 }
