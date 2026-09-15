@@ -21,12 +21,7 @@ public class NotificationService {
         this.employeeRepository = employeeRepository;
     }
 
-    /**
-     * Sends the attendance OTP to all active employees.
-     *
-     * @param otp generated attendance OTP
-     * @return delivery summary
-     */
+
     public AttendanceOtpSendStatus broadcastAttendanceOtp(String otp) {
 
         List<Employee> employees =
@@ -90,6 +85,20 @@ public class NotificationService {
         emailService.sendHtmlEmail(
                 employee.getEmail(),
                 "HR-Stack Attendance OTP",
+                htmlBody
+        );
+    }
+
+    //for verification otp
+
+    public void sendDocumentVerificationRequest(Employee employee){
+        String htmlBody = emailService.loadTemplate("templates/email/document-verification.html");
+
+        htmlBody = htmlBody.replace("{{name}}", employee.getFirstName());
+
+        emailService.sendHtmlEmail(
+                employee.getEmail(),
+                "HR-Stack - Document Verification Required",
                 htmlBody
         );
     }

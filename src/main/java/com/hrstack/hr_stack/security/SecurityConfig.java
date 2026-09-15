@@ -71,9 +71,12 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // Admin only
+                        // Admin only
                         .requestMatchers(
                                 "/employee/createAdmin",
-                                "/employee/createotp"
+                                "/employee/createotp",
+                                "/employee/*/request-documents",
+                                "/employee/*/activate"
                         ).hasRole("ADMIN")
 
                         // Admin + Employee

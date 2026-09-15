@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.hrstack.hr_stack.service.NotificationService;
 
 import java.time.Year;
 import java.util.List;
@@ -39,6 +40,10 @@ public class EmployeeService {
 
     private final BCryptPasswordEncoder encoder =
             new BCryptPasswordEncoder();
+
+    @Autowired
+    private NotificationService notificationService;
+
 
     public Employee registerEmployee(
             Employee employee) {
@@ -305,14 +310,19 @@ public class EmployeeService {
 
     public Employee requestDocuments(UUID id) {
         Employee employee =
-                    employeeRepository.findById(id)
-                            .orElseThrow(()->new ResourceNotFoundException("Employee not found with id: " + id));
+                employeeRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Employee not found with id: " + id));
+
         employee.setStatus(EmployeeStatus.PENDING_VERIFICATION.name());
 
-        return employeeRepository.save(employee);
-    }
+        Employee savedEmployee = employeeRepository.save(employee);
 
-    //activate employee after doc verification
+        notificationService.sendDocumentVerificationRequest(savedEmployee);
+
+        return savedEmployee;
+    }
 
     // Activate employee after document verification
     public Employee activateEmployee(UUID id) {

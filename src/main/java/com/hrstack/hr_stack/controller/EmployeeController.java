@@ -6,6 +6,7 @@ import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.security.JwtService;
 import com.hrstack.hr_stack.service.EmployeeService;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/employee")
@@ -129,7 +131,12 @@ public class EmployeeController {
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{uuid}/request-documents")
     public ResponseEntity<Employee> requestDocuments(
-            @PathVariable UUID uuid) {
+            @PathVariable UUID uuid,
+            Authentication authentication) {
+
+        System.out.println("===== REQUEST DOCUMENTS =====");
+        System.out.println("AUTH USER = " + authentication.getName());
+        System.out.println("AUTHORITIES = " + authentication.getAuthorities());
 
         Employee employee =
                 employeeService.requestDocuments(uuid);
