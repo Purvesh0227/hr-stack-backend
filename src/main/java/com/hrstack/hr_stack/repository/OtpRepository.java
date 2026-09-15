@@ -8,4 +8,8 @@ import java.util.UUID;
 
 public interface OtpRepository extends JpaRepository<Otp, UUID> {
     Optional<Otp> findTopByOrderByCreatedOnDesc();
+    Optional<Otp> findTopByDateAndDepartmentOrderByCreatedOnDesc(
+            Long date,
+            String department
+    );
 }

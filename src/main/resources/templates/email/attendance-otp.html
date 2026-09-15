@@ -109,10 +109,9 @@
                                         color: #64748b;
                                         font-size: 12px;
                                         text-transform: uppercase;
-                                        letter-spacing: 2px;
+                                        letter-spacing: 3px;
                                         margin-bottom: 10px;
-                                    ">
-                                        Your Attendance OTP
+                                    ">Your Attendance OTP
                                     </div>
 
                                     <div style="
@@ -120,6 +119,7 @@
                                         font-size: 34px;
                                         font-weight: bold;
                                         letter-spacing: 10px;
+                                        left-padding : 2px;
                                     ">
                                         {{otp}}
                                     </div>
@@ -151,11 +151,30 @@
                                     attendance verification.
                                 </td>
                             </tr>
-
                         </table>
+
+                    </td>
+                    <!-- Mark Attendance Button -->
+                <tr>
+                    <td align="center" style="padding: 0 35px 30px 35px;">
+
+                        <a <a href="{{attendanceUrl}}"
+                           style="
+                             display: inline-block;
+               background-color: #2563eb;
+               color: #ffffff;
+               text-decoration: none;
+               padding: 13px 28px;
+               border-radius: 8px;
+               font-size: 14px;
+               font-weight: bold;
+           ">
+                            Mark Attendance
+                        </a>
+
                     </td>
                 </tr>
-
+                </tr>
                 <!-- Footer -->
                 <tr>
                     <td style="
@@ -191,9 +210,7 @@
 
                     </td>
                 </tr>
-
             </table>
-
         </td>
     </tr>
 

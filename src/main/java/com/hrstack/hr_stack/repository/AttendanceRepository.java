@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
     List<Attendance> findByEmpId(String empId);
 
+    boolean existsByEmpIdAndMarkedOnBetween(String empId, Long startOfDay, Long endOfDay);
 }

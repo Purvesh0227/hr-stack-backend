@@ -3,6 +3,7 @@ package com.hrstack.hr_stack.service;
 import com.hrstack.hr_stack.dto.AttendanceOtpSendStatus;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,6 +13,9 @@ public class NotificationService {
 
     private final EmailService emailService;
     private final EmployeeRepository employeeRepository;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     public NotificationService(
             EmailService emailService,
@@ -44,10 +48,20 @@ public class NotificationService {
             try {
                 sendAttendanceOtp(employee, otp);
                 successful++;
-                System.out.println("Attendance OTP sent successfully to: " + employee.getEmail());
+
+                System.out.println(
+                        "Attendance OTP sent successfully to: "
+                                + employee.getEmail()
+                );
+
             } catch (Exception e) {
                 failed++;
-                System.err.println("Failed to send attendance OTP to: " + employee.getEmail());
+
+                System.err.println(
+                        "Failed to send attendance OTP to: "
+                                + employee.getEmail()
+                );
+
                 e.printStackTrace();
             }
         }
@@ -58,6 +72,7 @@ public class NotificationService {
                 failed
         );
     }
+
 
     /**
      * Builds and sends the attendance OTP email
@@ -72,6 +87,9 @@ public class NotificationService {
                         "templates/email/attendance-otp.html"
                 );
 
+        String attendanceUrl =
+                frontendUrl + "/dashboard?section=attendance";
+
         htmlBody = htmlBody
                 .replace(
                         "{{name}}",
@@ -80,6 +98,10 @@ public class NotificationService {
                 .replace(
                         "{{otp}}",
                         otp
+                )
+                .replace(
+                        "{{attendanceUrl}}",
+                        attendanceUrl
                 );
 
         emailService.sendHtmlEmail(
@@ -89,12 +111,29 @@ public class NotificationService {
         );
     }
 
-    //for verification otp
 
-    public void sendDocumentVerificationRequest(Employee employee){
-        String htmlBody = emailService.loadTemplate("templates/email/document-verification.html");
+    // Document verification email
 
-        htmlBody = htmlBody.replace("{{name}}", employee.getFirstName());
+    public void sendDocumentVerificationRequest(
+            Employee employee) {
+
+        String htmlBody =
+                emailService.loadTemplate(
+                        "templates/email/document-verification.html"
+                );
+
+        String documentsUrl =
+                frontendUrl + "/dashboard?section=documents";
+
+        htmlBody = htmlBody
+                .replace(
+                        "{{name}}",
+                        employee.getFirstName()
+                )
+                .replace(
+                        "{{documentsUrl}}",
+                        documentsUrl
+                );
 
         emailService.sendHtmlEmail(
                 employee.getEmail(),

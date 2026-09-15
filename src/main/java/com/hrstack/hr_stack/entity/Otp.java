@@ -12,7 +12,7 @@ public class Otp {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID uuid;
 
-    @Column(nullable = false, length = 6)
+    @Column(nullable = false, length = 100)
     private String otp;
 
     @Column(name = "created_by", nullable = false)

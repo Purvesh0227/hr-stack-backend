@@ -1,8 +1,9 @@
 package com.hrstack.hr_stack.controller;
+import com.hrstack.hr_stack.dto.OtpResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.hrstack.hr_stack.dto.CreateOtpRequest;
 import com.hrstack.hr_stack.entity.Employee;
-import com.hrstack.hr_stack.entity.Otp;
+
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import com.hrstack.hr_stack.service.OtpService;
 
@@ -70,12 +71,13 @@ public class OtpController {
         }
 
         // Create OTP
-        Otp otp = otpService.createOtp(
-                employee.getId(),
-                request.getDate(),
-                request.getDepartment()
-        );
+        OtpResponse response =
+                otpService.createOtp(
+                        employee.getId(),
+                        request.getDate(),
+                        request.getDepartment()
+                );
 
-        return ResponseEntity.ok(otp);
+        return ResponseEntity.ok(response);
     }
 }

@@ -9,9 +9,12 @@ import com.hrstack.hr_stack.exception.ResourceNotFoundException;
 import com.hrstack.hr_stack.repository.AttendanceRepository;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import com.hrstack.hr_stack.repository.OtpRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Service
 public class AttendanceService {
@@ -19,16 +22,15 @@ public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
     private final OtpRepository otpRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AttendanceService(
-            AttendanceRepository attendanceRepository,
-            EmployeeRepository employeeRepository,
-            OtpRepository otpRepository) {
-
+    public AttendanceService(AttendanceRepository attendanceRepository, EmployeeRepository employeeRepository, OtpRepository otpRepository, PasswordEncoder passwordEncoder) {
         this.attendanceRepository = attendanceRepository;
         this.employeeRepository = employeeRepository;
         this.otpRepository = otpRepository;
+        this.passwordEncoder = passwordEncoder;
     }
+
 
     // Mark attendance
     public Attendance markAttendance(
@@ -55,11 +57,8 @@ public class AttendanceService {
                         );
 
         // Check OTP value
-        if (!otp.getOtp().equals(enteredOtp)) {
-
-            throw new BadRequestException(
-                    "Invalid OTP"
-            );
+        if (!passwordEncoder.matches(enteredOtp, otp.getOtp())) {
+            throw new BadRequestException("Invalid OTP");
         }
 
         // Current Unix timestamp
@@ -72,6 +71,22 @@ public class AttendanceService {
             throw new BadRequestException(
                     "OTP is expired"
             );
+        }
+        // attendance is already marked today ?
+        LocalDate today = LocalDate.now();
+
+        long startOfDay = today.atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli();
+        long endOfDay = today.plusDays(1)
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli();
+        if(attendanceRepository.existsByEmpIdAndMarkedOnBetween(
+                employee.getEmpId(),
+                startOfDay,
+                endOfDay)){
+            throw new BadRequestException("Attendance already marked for today");
         }
 
         // Create attendance
