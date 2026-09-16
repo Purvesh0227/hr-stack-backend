@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.service;
 
+import com.hrstack.hr_stack.util.SalaryObjectKeyUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -49,13 +50,11 @@ public class TempFileStorageService {
             int year) {
 
         String objectKey =
-                "salary-slips/"
-                        + year
-                        + "/"
-                        + month
-                        + "/"
-                        + empId
-                        + ".pdf";
+                SalaryObjectKeyUtil.buildSalarySlipObjectKey(
+                        empId,
+                        month,
+                        year
+                );
 
         return minioStorageService.getPresignedUploadUrl(
                 bucketName,
@@ -69,13 +68,11 @@ public class TempFileStorageService {
             byte[] pdfBytes) {
 
         String objectKey =
-                "salary-slips/"
-                        + year
-                        + "/"
-                        + month
-                        + "/"
-                        + empId
-                        + ".pdf";
+                SalaryObjectKeyUtil.buildSalarySlipObjectKey(
+                        empId,
+                        month,
+                        year
+                );
 
         minioStorageService.upload(
                 bucketName,

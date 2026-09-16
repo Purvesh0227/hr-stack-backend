@@ -6,6 +6,7 @@ import com.hrstack.hr_stack.service.SalaryCalculationService;
 import com.hrstack.hr_stack.service.SalaryFileStorageService;
 import com.hrstack.hr_stack.service.SalaryStructureService;
 import com.hrstack.hr_stack.service.TempToPermanentStorageService;
+import com.hrstack.hr_stack.util.SalaryObjectKeyUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -93,13 +94,11 @@ public class SalaryController {
                 );
 
         String permanentObjectKey =
-                "salary-slips/"
-                        + year
-                        + "/"
-                        + month
-                        + "/"
-                        + empId
-                        + ".pdf";
+                SalaryObjectKeyUtil.buildSalarySlipObjectKey(
+                        empId,
+                        month,
+                        year
+                );
 
         String updatedObjectKey = tempToPermanentStorageService.replaceSalarySlip(
                 tempObjectKey,

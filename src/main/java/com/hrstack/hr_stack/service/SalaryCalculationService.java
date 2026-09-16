@@ -79,6 +79,18 @@ public class SalaryCalculationService {
             );
         }
 
+        //prevent duplicate salary generation
+
+        if(salarySlipRepository.findByEmpIdAndMonthAndYear(empId, month, year).isPresent()){
+            throw new BadRequestException("Salary slip already exists for employee "
+                    + empId
+                    + "for"
+                    + month
+                    + "/"
+                    + year
+            );
+        }
+
         // Get salary structure
         SalaryStructure structure =
                 salaryStructureRepository

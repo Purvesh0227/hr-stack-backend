@@ -2,6 +2,7 @@ package com.hrstack.hr_stack.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import com.hrstack.hr_stack.util.SalaryObjectKeyUtil;
 
 @Service
 public class SalaryFileStorageService {
@@ -28,13 +29,11 @@ public class SalaryFileStorageService {
             byte[] pdfBytes) {
 
         String objectKey =
-                "salary-slips/"
-                        + year
-                        + "/"
-                        + month
-                        + "/"
-                        + empId
-                        + ".pdf";
+                SalaryObjectKeyUtil.buildSalarySlipObjectKey(
+                        empId,
+                        month,
+                        year
+                );
 
         minioStorageService.upload(
                 permanentBucket,
