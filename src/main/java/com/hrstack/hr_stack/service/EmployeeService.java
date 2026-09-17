@@ -501,4 +501,47 @@ public class EmployeeService {
 
         return employeeRepository.save(employee);
     }
+
+
+// UPDATE EMPLOYEE PROFILE PHOTO
+
+    public Employee updateEmployeeProfilePhoto(
+            UUID id,
+            MultipartFile profilePhoto) {
+
+        Employee existingEmployee =
+                employeeRepository.findById(id)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException("Employee not found"));
+
+        if (profilePhoto == null || profilePhoto.isEmpty()) {
+            throw new BadRequestException("Profile photo is required");
+        }
+
+        // Validate profile photo
+        validateProfilePhoto(profilePhoto);
+
+        try {
+            String extension = getExtension(profilePhoto.getOriginalFilename());
+
+            String objectKey =
+                    "employee-profile/"
+                            + existingEmployee.getEmpId()
+                            + "/profile-picture"
+                            + extension;
+
+            minioStorageService.upload(
+                    permanentBucket,
+                    objectKey,
+                    profilePhoto.getBytes(),
+                    profilePhoto.getContentType()
+            );
+
+            // Update object key in database
+            existingEmployee.setProfilePhotoObjectKey(objectKey);
+            return employeeRepository.save(existingEmployee);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update profile photo", e);
+        }
+    }
 }
