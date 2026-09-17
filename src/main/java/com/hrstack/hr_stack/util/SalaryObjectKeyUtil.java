@@ -5,7 +5,6 @@ public final class SalaryObjectKeyUtil {
     private static final String SALARY_SLIPS_PREFIX = "salary-slips";
 
     private SalaryObjectKeyUtil() {
-        // Utility class
     }
 
     public static String buildSalarySlipObjectKey(

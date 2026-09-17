@@ -16,7 +16,10 @@ import java.util.List;
 import java.util.UUID;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
+import com.hrstack.hr_stack.dto.RegisterEmployeeRequest;
+import com.hrstack.hr_stack.dto.EmployeeProfileResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 
 @RestController
 @RequestMapping("/employee")
@@ -31,11 +34,14 @@ public class EmployeeController {
     private JwtService  jwtService;
 
     //to register employee
-    @PostMapping("/register")
-    public ResponseEntity<?> registerEmployee(@Valid @RequestBody Employee employee) {
+    @PostMapping(
+            value = "/register",
+            consumes = "multipart/form-data"
+    )
+    public ResponseEntity<?> registerEmployee(
+            @Valid @ModelAttribute RegisterEmployeeRequest request) {
         try {
-
-            Employee savedEmployee = employeeService.registerEmployee(employee);
+            Employee savedEmployee = employeeService.registerEmployee(request);
             return ResponseEntity.ok(savedEmployee);
         } catch (RuntimeException e) {
             return ResponseEntity
@@ -59,6 +65,7 @@ public class EmployeeController {
     }
 
     // to get all emplyee details
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/allEmployees")
     public List<Employee> getAllEmployees(@RequestParam String email) {
 
@@ -66,11 +73,13 @@ public class EmployeeController {
 
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/allAdmins")
     public List<Employee> getAllAdmins(@RequestParam String email){
         return employeeService.getAllAdmins(email);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/adminProfile")
     public Employee getAdminProfile(@RequestParam String email){
         return employeeService.getAdminProfile(email);
@@ -96,7 +105,8 @@ public class EmployeeController {
         return ResponseEntity.ok(response);
     }
 
-    // to get details of employee by email(task2)
+
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/email/{email}")
     public Employee getEmployeeByEmail(@PathVariable String email) {
 
@@ -104,12 +114,14 @@ public class EmployeeController {
     }
 
     //to get emp by uuid
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{uuid}")
-    public Employee getEmployeeById(@PathVariable UUID uuid) {
+    public EmployeeProfileResponse getEmployeeById(@PathVariable UUID uuid) {
         return employeeService.getEmployeeById(uuid);
     }
 
     // Update employee details
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{uuid}")
     public ResponseEntity<Employee> updateEmployee(
             @PathVariable UUID uuid,
@@ -121,6 +133,7 @@ public class EmployeeController {
     }
 
     //to delete emp by uuid
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{uuid}")
     public ResponseEntity<Map<String, String>> deleteEmployee(@PathVariable UUID uuid) {
         employeeService.deleteEmployee(uuid);

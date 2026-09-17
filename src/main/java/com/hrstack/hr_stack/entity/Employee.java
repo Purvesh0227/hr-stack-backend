@@ -82,6 +82,9 @@ public class Employee {
     @Column(nullable = false)
     private String status = EmployeeStatus.PENDING.name();
 
+    @Column(name = "profile_photo_object_key")
+    private String profilePhotoObjectKey;
+
     @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
     private EmployeeDocument documents;
 
@@ -177,5 +180,13 @@ public class Employee {
 
     public void setDocuments(EmployeeDocument documents) {
         this.documents = documents;
+    }
+
+    public String getProfilePhotoObjectKey() {
+        return profilePhotoObjectKey;
+    }
+
+    public void setProfilePhotoObjectKey(String profilePhotoObjectKey) {
+        this.profilePhotoObjectKey = profilePhotoObjectKey;
     }
 }

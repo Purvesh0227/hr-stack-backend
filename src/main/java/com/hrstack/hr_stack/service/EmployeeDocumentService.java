@@ -14,6 +14,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.hrstack.hr_stack.dto.EmployeeDocumentUploadResponse;
 
 import java.util.UUID;
+import com.hrstack.hr_stack.entity.Employee;
+import com.hrstack.hr_stack.exception.ResourceNotFoundException;
+import com.hrstack.hr_stack.repository.EmployeeRepository;
+
+import java.util.UUID;
 
 @Service
 public class EmployeeDocumentService {
@@ -237,5 +242,14 @@ public class EmployeeDocumentService {
                 bucket,
                 objectKey
         );
+    }
+    public Employee getEmployeeById(UUID uuid) {
+
+        return employeeRepository
+                .findById(uuid)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Employee not found with id: " + uuid
+                        ));
     }
 }

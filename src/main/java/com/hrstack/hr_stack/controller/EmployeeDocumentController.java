@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.hrstack.hr_stack.dto.EmployeeDocumentUploadResponse;
 import java.util.UUID;
+import com.hrstack.hr_stack.entity.Employee;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/employee/{uuid}/documents")
@@ -65,12 +67,31 @@ public class EmployeeDocumentController {
         return ResponseEntity.ok(document);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @Hidden
     @GetMapping("/view-url")
     public ResponseEntity<String> getDocumentViewUrl(
             @PathVariable UUID uuid,
-            @RequestParam String documentType) {
+            @RequestParam String documentType,
+            Authentication authentication) {
+
+        // Employee can view only their own documents
+        boolean isEmployee = authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority ->
+                        authority.getAuthority().equals("ROLE_EMPLOYEE"));
+
+        if (isEmployee) {
+
+            Employee employee =
+                    employeeDocumentService.getEmployeeById(uuid);
+
+            if (!employee.getEmail().equalsIgnoreCase(
+                    authentication.getName())) {
+
+                return ResponseEntity.status(403).build();
+            }
+        }
 
         String url =
                 employeeDocumentService.getDocumentViewUrl(

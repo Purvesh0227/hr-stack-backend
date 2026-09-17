@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.service;
 
+import com.hrstack.hr_stack.dto.RegisterEmployeeRequest;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.exception.AccessDeniedException;
 import com.hrstack.hr_stack.exception.BadRequestException;
@@ -20,6 +21,13 @@ import com.hrstack.hr_stack.repository.EmployeeDocumentRepository;
 
 import org.springframework.beans.factory.annotation.Value;
 import com.hrstack.hr_stack.enums.EmployeeStatus;
+import org.springframework.web.multipart.MultipartFile;
+
+import static org.apache.commons.io.FilenameUtils.getExtension;
+import com.hrstack.hr_stack.dto.RegisterEmployeeRequest;
+import org.springframework.web.multipart.MultipartFile;
+import com.hrstack.hr_stack.dto.EmployeeProfileResponse;
+
 @Service
 public class EmployeeService {
 
@@ -46,24 +54,82 @@ public class EmployeeService {
 
 
     public Employee registerEmployee(
-            Employee employee) {
+            RegisterEmployeeRequest request) {
 
         if (employeeRepository.existsByEmailIgnoreCase(
-                employee.getEmail())) {
+                request.getEmail())) {
 
             throw new BadRequestException(
                     "Email already exists. Please use another email."
             );
         }
 
+        Employee employee = new Employee();
+
+        employee.setFirstName(request.getFirstName());
+        employee.setLastName(request.getLastName());
+        employee.setEmail(request.getEmail());
+        employee.setMobile(request.getMobile());
+
         employee.setEmpId(generateEmpId());
         employee.setRole("EMPLOYEE");
 
         employee.setPassword(
-                encoder.encode(employee.getPassword())
+                encoder.encode(request.getPassword())
         );
 
+        // Profile photo
+        if (request.getProfilePhoto() != null
+                && !request.getProfilePhoto().isEmpty()) {
+
+            MultipartFile profilePhoto = request.getProfilePhoto();
+
+            validateProfilePhoto(profilePhoto);
+
+            try {
+                String objectKey =
+                        "employee-profile/"
+                                + employee.getEmpId()
+                                + "/profile-picture"
+                                + getExtension(profilePhoto.getOriginalFilename());
+
+                minioStorageService.upload(
+                        permanentBucket,
+                        objectKey,
+                        profilePhoto.getBytes(),
+                        profilePhoto.getContentType());
+
+                employee.setProfilePhotoObjectKey(objectKey);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to upload profile photo", e);
+            }
+        }
         return employeeRepository.save(employee);
+    }
+
+    private void validateProfilePhoto(MultipartFile file) {
+
+        long maxSize = 2 * 1024 * 1024;
+
+        if (file.getSize() > maxSize) {
+            throw new BadRequestException("Profile photo must not exceed 2 MB.");
+        }
+
+        String contentType = file.getContentType();
+
+        if (contentType == null
+                || (!contentType.equals("image/jpeg")
+                && !contentType.equals("image/png"))) {
+
+            throw new BadRequestException("Only JPG, JPEG and PNG profile photos are allowed.");
+        }
+    }
+
+    private String getExtension(String fileName) {
+        if (fileName == null || !fileName.contains(".")) {
+            return ".jpg";
+        }
+        return fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
     }
 
     // Create admin
@@ -203,15 +269,39 @@ public class EmployeeService {
     }
 
     // Get employee by UUID
-    public Employee getEmployeeById(UUID id) {
+    // Get employee profile by UUID
+    // Get employee profile by UUID
+    public EmployeeProfileResponse getEmployeeById(UUID id) {
 
-        return employeeRepository
+        Employee employee = employeeRepository
                 .findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Employee not found"
-                        )
-                );
+                                "Employee not found with id: " + id
+                        ));
+
+        String profilePhotoUrl = null;
+
+        if (employee.getProfilePhotoObjectKey() != null
+                && !employee.getProfilePhotoObjectKey().isBlank()) {
+
+            profilePhotoUrl = minioStorageService.getSignedUrl(
+                    permanentBucket,
+                    employee.getProfilePhotoObjectKey()
+            );
+        }
+
+        return new EmployeeProfileResponse(
+                employee.getId().toString(),
+                employee.getEmpId(),
+                employee.getFirstName(),
+                employee.getLastName(),
+                employee.getEmail(),
+                employee.getMobile(),
+                employee.getRole(),
+                employee.getStatus(),
+                profilePhotoUrl
+        );
     }
 
     // Update employee details
