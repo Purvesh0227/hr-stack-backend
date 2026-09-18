@@ -120,7 +120,7 @@ public class EmployeeController {
 
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/adminProfile")
-    public Employee getAdminProfile(
+    public EmployeeProfileResponse getAdminProfile(
             @RequestParam String email) {
 
         return employeeService.getAdminProfile(email);

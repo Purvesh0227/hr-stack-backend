@@ -231,8 +231,7 @@ public class EmployeeService {
     }
 
     // Get admin profile
-    public Employee getAdminProfile(
-            String email) {
+    public EmployeeProfileResponse getAdminProfile(String email) {
 
         Employee employee =
                 employeeRepository
@@ -243,15 +242,36 @@ public class EmployeeService {
                                 )
                         );
 
-        if (!"ADMIN".equalsIgnoreCase(
-                employee.getRole())) {
+        if (!"ADMIN".equalsIgnoreCase(employee.getRole())) {
 
             throw new AccessDeniedException(
                     "Access denied. You are not Admin"
             );
         }
 
-        return employee;
+        String profilePhotoUrl = null;
+
+        if (employee.getProfilePhotoObjectKey() != null
+                && !employee.getProfilePhotoObjectKey().isBlank()) {
+
+            profilePhotoUrl =
+                    minioStorageService.getSignedUrl(
+                            permanentBucket,
+                            employee.getProfilePhotoObjectKey()
+                    );
+        }
+
+        return new EmployeeProfileResponse(
+                employee.getId().toString(),
+                employee.getEmpId(),
+                employee.getFirstName(),
+                employee.getLastName(),
+                employee.getEmail(),
+                employee.getMobile(),
+                employee.getRole(),
+                employee.getStatus(),
+                profilePhotoUrl
+        );
     }
 
     // Find employee by email
