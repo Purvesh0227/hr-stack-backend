@@ -1,4 +1,7 @@
-package com.hrstack.hr_stack.dto;
+
+ package com.hrstack.hr_stack.dto;
+
+import com.hrstack.hr_stack.entity.EmployeeDocument;
 
 public class EmployeeProfileResponse {
 
@@ -11,6 +14,7 @@ public class EmployeeProfileResponse {
     private String role;
     private String status;
     private String profilePhotoUrl;
+    private EmployeeDocument documents;
 
     public EmployeeProfileResponse() {
     }
@@ -24,7 +28,8 @@ public class EmployeeProfileResponse {
             String mobile,
             String role,
             String status,
-            String profilePhotoUrl) {
+            String profilePhotoUrl,
+            EmployeeDocument documents) {
 
         this.id = id;
         this.empId = empId;
@@ -35,6 +40,7 @@ public class EmployeeProfileResponse {
         this.role = role;
         this.status = status;
         this.profilePhotoUrl = profilePhotoUrl;
+        this.documents = documents;
     }
 
     public String getId() {
@@ -107,5 +113,13 @@ public class EmployeeProfileResponse {
 
     public void setProfilePhotoUrl(String profilePhotoUrl) {
         this.profilePhotoUrl = profilePhotoUrl;
+    }
+
+    public EmployeeDocument getDocuments() {
+        return documents;
+    }
+
+    public void setDocuments(EmployeeDocument documents) {
+        this.documents = documents;
     }
 }
