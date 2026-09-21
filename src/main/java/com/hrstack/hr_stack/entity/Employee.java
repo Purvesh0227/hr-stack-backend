@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Pattern;
 import java.util.UUID;
 import com.hrstack.hr_stack.enums.EmployeeStatus;
 
+
 @Entity
 @Table(name = "users",
         uniqueConstraints = {
@@ -84,6 +85,12 @@ public class Employee {
 
     @Column(name = "profile_photo_object_key")
     private String profilePhotoObjectKey;
+
+    @Column(name = "created_on", nullable = false, updatable = false)
+    private Long createdOn;
+
+    @Column(name = "updated_on", nullable = false)
+    private Long updatedOn;
 
     @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
     private EmployeeDocument documents;
@@ -188,5 +195,22 @@ public class Employee {
 
     public void setProfilePhotoObjectKey(String profilePhotoObjectKey) {
         this.profilePhotoObjectKey = profilePhotoObjectKey;
+    }
+
+
+    public Long getCreatedOn() {
+        return createdOn;
+    }
+
+    public void setCreatedOn(Long createdOn) {
+        this.createdOn = createdOn;
+    }
+
+    public Long getUpdatedOn() {
+        return updatedOn;
+    }
+
+    public void setUpdatedOn(Long updatedOn) {
+        this.updatedOn = updatedOn;
     }
 }

@@ -113,6 +113,10 @@ public class EmployeeService {
             }
         }
 
+        long currentTime = System.currentTimeMillis();
+        employee.setCreatedOn(currentTime);
+        employee.setUpdatedOn(currentTime);
+
         return employeeRepository.save(employee);
     }
 
@@ -183,6 +187,11 @@ public class EmployeeService {
         );
 
         employee.setRole("ADMIN");
+
+
+        long currentTime = System.currentTimeMillis();
+        employee.setCreatedOn(currentTime);
+        employee.setUpdatedOn(currentTime);
 
         return employeeRepository.save(employee);
     }
@@ -322,6 +331,8 @@ public class EmployeeService {
                 employee.getRole(),
                 employee.getStatus(),
                 profilePhotoUrl,
+                employee.getCreatedOn(),
+                employee.getUpdatedOn(),
                 null
         );
     }
@@ -390,10 +401,11 @@ public class EmployeeService {
                 employee.getRole(),
                 employee.getStatus(),
                 profilePhotoUrl,
+                employee.getCreatedOn(),
+                employee.getUpdatedOn(),
                 documents
         );
     }
-
 
     // =========================================================
     // UPDATE EMPLOYEE DETAILS
@@ -412,21 +424,16 @@ public class EmployeeService {
                                 )
                         );
 
-        existingEmployee.setFirstName(
-                updatedEmployee.getFirstName()
-        );
+        existingEmployee.setFirstName(updatedEmployee.getFirstName());
 
-        existingEmployee.setLastName(
-                updatedEmployee.getLastName()
-        );
+        existingEmployee.setLastName(updatedEmployee.getLastName());
 
-        existingEmployee.setMobile(
-                updatedEmployee.getMobile()
-        );
+        existingEmployee.setMobile(updatedEmployee.getMobile());
+
+        existingEmployee.setUpdatedOn(System.currentTimeMillis());
 
         return employeeRepository.save(existingEmployee);
     }
-
 
     // =========================================================
     // DELETE EMPLOYEE
@@ -508,15 +515,12 @@ public class EmployeeService {
                 employeeRepository
                         .findById(id)
                         .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Employee not found with id: "
-                                                + id
-                                )
+                                new ResourceNotFoundException("Employee not found with id: " + id)
                         );
 
-        employee.setStatus(
-                EmployeeStatus.PENDING_VERIFICATION.name()
-        );
+        employee.setStatus(EmployeeStatus.PENDING_VERIFICATION.name());
+
+        employee.setUpdatedOn(System.currentTimeMillis());
 
         Employee savedEmployee =
                 employeeRepository.save(employee);
@@ -617,9 +621,9 @@ public class EmployeeService {
         );
 
         // Activate employee
-        employee.setStatus(
-                EmployeeStatus.ACTIVE.name()
-        );
+        employee.setStatus(EmployeeStatus.ACTIVE.name());
+
+        employee.setUpdatedOn(System.currentTimeMillis());
 
         return employeeRepository.save(employee);
     }
@@ -676,6 +680,10 @@ public class EmployeeService {
             // Update object key in database
             existingEmployee.setProfilePhotoObjectKey(
                     objectKey
+            );
+
+            existingEmployee.setUpdatedOn(
+                    System.currentTimeMillis()
             );
 
             return employeeRepository.save(
