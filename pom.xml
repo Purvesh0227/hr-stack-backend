@@ -128,10 +128,22 @@
 			<version>1.1.37</version>
 		</dependency>
 
+<!--		<dependency>-->
+<!--			<groupId>io.minio</groupId>-->
+<!--			<artifactId>minio</artifactId>-->
+<!--			<version>8.6.0</version>-->
+<!--		</dependency>-->
+
 		<dependency>
-			<groupId>io.minio</groupId>
-			<artifactId>minio</artifactId>
-			<version>8.6.0</version>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>2.48.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.20.0</version>
 		</dependency>
 
 		<dependency>

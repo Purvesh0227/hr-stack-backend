@@ -9,7 +9,7 @@ public class TempFileStorageService {
 
     private final MinioStorageService minioStorageService;
 
-    @Value("${minio.temp-bucket}")
+    @Value("${s3.temp-bucket}")
     private String bucketName;
 
     public TempFileStorageService(

@@ -1,87 +1,119 @@
 package com.hrstack.hr_stack.service;
 
-import io.minio.*;
 import org.springframework.stereotype.Service;
-import io.minio.http.Method;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.time.Duration;
 
 @Service
 public class MinioStorageService {
 
-    private final MinioClient minioClient;
+    private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
 
-    public MinioStorageService(MinioClient minioClient) {
-        this.minioClient = minioClient;
+    public MinioStorageService(
+            S3Client s3Client,
+            S3Presigner s3Presigner
+    ) {
+        this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
     }
 
-    // Upload file to any bucket
     public void upload(
             String bucketName,
             String objectKey,
             byte[] fileBytes,
-            String contentType) {
-
+            String contentType
+    ) {
         try {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectKey)
-                            .stream(
-                                    new ByteArrayInputStream(fileBytes),
-                                    fileBytes.length,
-                                    -1
-                            )
-                            .contentType(contentType)
-                            .build()
+
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .contentType(contentType)
+                    .build();
+
+            s3Client.putObject(
+                    request,
+                    RequestBody.fromBytes(fileBytes)
             );
 
         } catch (Exception e) {
+
+            e.printStackTrace();
+
             throw new RuntimeException(
-                    "Failed to upload file to MinIO", e
+                    "Failed to upload file to S3",
+                    e
             );
         }
     }
 
-    // Download file from any bucket
     public byte[] download(
             String bucketName,
-            String objectKey) {
-
+            String objectKey
+    ) {
         try (
-                InputStream stream = minioClient.getObject(
-                        GetObjectArgs.builder()
-                                .bucket(bucketName)
-                                .object(objectKey)
-                                .build()
-                )
+                InputStream inputStream =
+                        s3Client.getObject(
+                                GetObjectRequest.builder()
+                                        .bucket(bucketName)
+                                        .key(objectKey)
+                                        .build()
+                        )
         ) {
-            return stream.readAllBytes();
+
+            ByteArrayOutputStream outputStream =
+                    new ByteArrayOutputStream();
+
+            byte[] buffer = new byte[8192];
+
+            int bytesRead;
+
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+
+            return outputStream.toByteArray();
 
         } catch (Exception e) {
+
             throw new RuntimeException(
-                    "Failed to download file from MinIO", e
+                    "Failed to download file from S3",
+                    e
             );
         }
     }
 
-    // Delete file from any bucket
     public void delete(
             String bucketName,
-            String objectKey) {
-
+            String objectKey
+    ) {
         try {
-            minioClient.removeObject(
-                    io.minio.RemoveObjectArgs.builder()
+
+            s3Client.deleteObject(
+                    DeleteObjectRequest.builder()
                             .bucket(bucketName)
-                            .object(objectKey)
+                            .key(objectKey)
                             .build()
             );
 
         } catch (Exception e) {
+
             throw new RuntimeException(
-                    "Failed to delete file from MinIO", e
+                    "Failed to delete file from S3",
+                    e
             );
         }
     }
@@ -90,87 +122,123 @@ public class MinioStorageService {
             String sourceBucket,
             String sourceObjectKey,
             String destinationBucket,
-            String destinationObjectKey){
+            String destinationObjectKey
+    ) {
+        try {
 
-        try{
-            minioClient.copyObject(
-                    io.minio.CopyObjectArgs.builder()
-                            .bucket(destinationBucket)
-                            .object(destinationObjectKey)
-                            .source(
-                                    io.minio.CopySource.builder()
-                                            .bucket(sourceBucket)
-                                            .object(sourceObjectKey)
-                                            .build()
-                            )
-                            .build());
+            String copySource =
+                    sourceBucket + "/" + sourceObjectKey;
 
-            minioClient.removeObject(
-                    io.minio.RemoveObjectArgs.builder()
+            s3Client.copyObject(
+                    CopyObjectRequest.builder()
+                            .copySource(copySource)
+                            .destinationBucket(destinationBucket)
+                            .destinationKey(destinationObjectKey)
+                            .build()
+            );
+
+            s3Client.deleteObject(
+                    DeleteObjectRequest.builder()
                             .bucket(sourceBucket)
-                            .object(sourceObjectKey)
-                            .build() );
+                            .key(sourceObjectKey)
+                            .build()
+            );
 
         } catch (Exception e) {
+
             throw new RuntimeException(
-                    "Failed to move file from MinIO", e
+                    "Failed to move file from S3",
+                    e
             );
         }
     }
 
-    public String getSignedUrl(String bucketName,
-                               String objectKey) {
-        try{
-            return minioClient.getPresignedObjectUrl(
-                    GetPresignedObjectUrlArgs.builder()
-                            .method(Method.GET)
+    public String getSignedUrl(
+            String bucketName,
+            String objectKey
+    ) {
+        try {
+
+            GetObjectRequest getObjectRequest =
+                    GetObjectRequest.builder()
                             .bucket(bucketName)
-                            .object(objectKey)
-                            .expiry(60 * 60)
-                            .build()
-            );
+                            .key(objectKey)
+                            .build();
+
+            GetObjectPresignRequest presignRequest =
+                    GetObjectPresignRequest.builder()
+                            .signatureDuration(
+                                    Duration.ofHours(1)
+                            )
+                            .getObjectRequest(getObjectRequest)
+                            .build();
+
+            return s3Presigner
+                    .presignGetObject(presignRequest)
+                    .url()
+                    .toString();
+
         } catch (Exception e) {
-            throw new RuntimeException("Failed To Generate Signed Url "+e);
+
+            throw new RuntimeException(
+                    "Failed to generate signed URL",
+                    e
+            );
         }
     }
 
     public boolean exists(
             String bucketName,
-            String objectKey) {
-
+            String objectKey
+    ) {
         try {
-            minioClient.statObject(
-                    StatObjectArgs.builder()
+
+            s3Client.headObject(
+                    HeadObjectRequest.builder()
                             .bucket(bucketName)
-                            .object(objectKey)
+                            .key(objectKey)
                             .build()
             );
 
             return true;
 
         } catch (Exception e) {
+
             return false;
         }
     }
+
     public String getPresignedUploadUrl(
             String bucketName,
-            String objectKey) {
-
+            String objectKey
+    ) {
         try {
-            return minioClient.getPresignedObjectUrl(
-                    GetPresignedObjectUrlArgs.builder()
-                            .method(Method.PUT)
+
+            PutObjectRequest putObjectRequest =
+                    PutObjectRequest.builder()
                             .bucket(bucketName)
-                            .object(objectKey)
-                            .expiry(60 * 15)
-                            .build()
-            );
+                            .key(objectKey)
+                            .build();
+
+            PutObjectPresignRequest presignRequest =
+                    PutObjectPresignRequest.builder()
+                            .signatureDuration(
+                                    Duration.ofMinutes(15)
+                            )
+                            .putObjectRequest(putObjectRequest)
+                            .build();
+
+            return s3Presigner
+                    .presignPutObject(presignRequest)
+                    .url()
+                    .toString();
 
         } catch (Exception e) {
+
             throw new RuntimeException(
-                    "Failed to generate upload URL", e
+                    "Failed to generate upload URL",
+                    e
             );
         }
     }
 }
-

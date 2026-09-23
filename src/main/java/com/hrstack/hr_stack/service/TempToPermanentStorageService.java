@@ -8,10 +8,10 @@ public class TempToPermanentStorageService {
 
     private final MinioStorageService minioStorageService;
 
-    @Value("${minio.temp-bucket}")
+    @Value("${s3.temp-bucket}")
     private String tempBucket;
 
-    @Value("${minio.permanent-bucket}")
+    @Value("${s3.permanent-bucket}")
     private String permanentBucket;
 
     // Replacement allowed for 2 months

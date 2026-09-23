@@ -22,6 +22,7 @@ import com.hrstack.hr_stack.dto.EmployeeProfileResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import org.springframework.web.multipart.MultipartFile;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 
 @RestController
@@ -232,8 +233,6 @@ public class EmployeeController {
 
         return ResponseEntity.ok(updatedEmployee);
     }
-
-
     // =========================================================
     // DELETE EMPLOYEE
     // =========================================================
@@ -289,10 +288,13 @@ public class EmployeeController {
     // ACTIVATE EMPLOYEE
     // =========================================================
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{uuid}/activate")
     public ResponseEntity<Employee> activateEmployee(
             @PathVariable UUID uuid) {
+
+        System.out.println("ACTIVATE CONTROLLER REACHED");
 
         Employee employee =
                 employeeService.activateEmployee(uuid);

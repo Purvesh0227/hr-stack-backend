@@ -9,10 +9,10 @@ public class SalaryFileStorageService {
 
     private final MinioStorageService minioStorageService;
 
-    @Value("${minio.permanent-bucket}")
+    @Value("${s3.permanent-bucket}")
     private String permanentBucket;
 
-    @Value("${minio.temp-bucket}")
+    @Value("${s3.temp-bucket}")
     private String tempBucket;
 
     public SalaryFileStorageService(

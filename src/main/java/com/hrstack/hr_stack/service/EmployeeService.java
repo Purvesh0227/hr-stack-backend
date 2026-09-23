@@ -34,10 +34,10 @@ public class EmployeeService {
     @Autowired
     private MinioStorageService minioStorageService;
 
-    @Value("${minio.temp-bucket}")
+    @Value("${s3.temp-bucket}")
     private String tempBucket;
 
-    @Value("${minio.permanent-bucket}")
+    @Value("${s3.permanent-bucket}")
     private String permanentBucket;
 
     private final BCryptPasswordEncoder encoder =

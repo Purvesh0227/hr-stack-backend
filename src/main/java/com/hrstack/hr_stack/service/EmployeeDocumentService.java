@@ -32,10 +32,10 @@ public class EmployeeDocumentService {
     @Autowired
     private MinioStorageService minioStorageService;
 
-    @Value("${minio.temp-bucket}")
+    @Value("${s3.temp-bucket}")
     private String tempBucket;
 
-    @Value("${minio.permanent-bucket}")
+    @Value("${s3.permanent-bucket}")
     private String permanentBucket;
 
     public EmployeeDocument getDocumentsByEmployeeId(UUID employeeId) {
