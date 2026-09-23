@@ -204,6 +204,15 @@ public class MinioStorageService {
 
         } catch (Exception e) {
 
+            System.err.println(
+                    "S3 EXISTS FAILED | bucket="
+                            + bucketName
+                            + " | key="
+                            + objectKey
+                            + " | error="
+                            + e.getMessage()
+            );
+
             return false;
         }
     }
