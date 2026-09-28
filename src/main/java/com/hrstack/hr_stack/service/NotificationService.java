@@ -88,7 +88,7 @@ public class NotificationService {
                 );
 
         String attendanceUrl =
-                frontendUrl + "/dashboard?section=attendance";
+                frontendUrl + "attendance";
 
         htmlBody = htmlBody
                 .replace(
@@ -123,7 +123,7 @@ public class NotificationService {
                 );
 
         String documentsUrl =
-                frontendUrl + "/dashboard?section=documents";
+                frontendUrl + "/";
 
         htmlBody = htmlBody
                 .replace(
