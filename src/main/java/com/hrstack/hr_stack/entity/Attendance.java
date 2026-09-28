@@ -15,7 +15,7 @@ public class Attendance {
     @Column(name = "emp_id", nullable = false)
     private String empId;
 
-    // Unix timestamp in milliseconds
+
     @Column(name = "marked_on", nullable = false)
     private Long markedOn;
 
