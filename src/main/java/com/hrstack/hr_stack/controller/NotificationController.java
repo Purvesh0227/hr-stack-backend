@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.controller;
 
+import com.hrstack.hr_stack.dto.NotificationResponse;
 import com.hrstack.hr_stack.entity.Notification;
 import com.hrstack.hr_stack.service.InAppNotificationService;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -26,37 +27,16 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Notification>> getNotifications(
+    public ResponseEntity<NotificationResponse> getNotifications(
             Authentication authentication) {
 
         return ResponseEntity.ok(
-                notificationService.getNotifications(
+                notificationService.getUnreadNotificationResponse(
                         authentication.getName()
                 )
         );
     }
 
-    @GetMapping("/unread")
-    public ResponseEntity<List<Notification>> getUnreadNotifications(
-            Authentication authentication) {
-
-        return ResponseEntity.ok(
-                notificationService.getUnreadNotifications(
-                        authentication.getName()
-                )
-        );
-    }
-
-    @GetMapping("/unread-count")
-    public ResponseEntity<Long> getUnreadCount(
-            Authentication authentication) {
-
-        return ResponseEntity.ok(
-                notificationService.getUnreadCount(
-                        authentication.getName()
-                )
-        );
-    }
 
     @PatchMapping("/{notificationId}/read")
     public ResponseEntity<Void> markAsRead(
