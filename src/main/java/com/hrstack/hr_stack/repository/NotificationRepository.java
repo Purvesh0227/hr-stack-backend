@@ -14,9 +14,15 @@ public interface NotificationRepository
             Employee employee
     );
 
+    List<Notification> findByEmployeeAndReadTrueOrderByCreatedOnDesc(
+            Employee employee
+    );
+
     List<Notification> findByEmployeeAndReadFalseOrderByCreatedOnDesc(
             Employee employee
     );
 
-    long countByEmployeeAndReadFalse(Employee employee);
+    long countByEmployeeAndReadFalse(
+            Employee employee
+    );
 }
