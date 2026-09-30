@@ -3,6 +3,7 @@ package com.hrstack.hr_stack.service;
 import com.hrstack.hr_stack.dto.NotificationResponse;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.Notification;
+import com.hrstack.hr_stack.enums.NotificationFilter;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import com.hrstack.hr_stack.repository.NotificationRepository;
 import org.springframework.stereotype.Service;
@@ -49,26 +50,52 @@ public class InAppNotificationService {
     }
 
     @Transactional(readOnly = true)
-    public List<Notification> getNotifications(String email) {
+    public NotificationResponse getNotifications(
+            String email,
+            NotificationFilter filter) {
 
         Employee employee = employeeRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("Employee not found"));
 
-        return notificationRepository
-                .findByEmployeeOrderByCreatedOnDesc(employee);
-    }
+        List<Notification> notifications;
 
+        switch (filter) {
 
-    @Transactional(readOnly = true)
-    public long getUnreadCount(String email) {
+            case READ:
+                notifications =
+                        notificationRepository
+                                .findByEmployeeAndReadTrueOrderByCreatedOnDesc(
+                                        employee
+                                );
+                break;
 
-        Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("Employee not found"));
+            case UNREAD:
+                notifications =
+                        notificationRepository
+                                .findByEmployeeAndReadFalseOrderByCreatedOnDesc(
+                                        employee
+                                );
+                break;
 
-        return notificationRepository
-                .countByEmployeeAndReadFalse(employee);
+            case ALL:
+            default:
+                notifications =
+                        notificationRepository
+                                .findByEmployeeOrderByCreatedOnDesc(
+                                        employee
+                                );
+                break;
+        }
+
+        long unreadCount =
+                notificationRepository
+                        .countByEmployeeAndReadFalse(employee);
+
+        return new NotificationResponse(
+                notifications,
+                unreadCount
+        );
     }
 
     @Transactional
@@ -117,25 +144,4 @@ public class InAppNotificationService {
 
         notificationRepository.saveAll(notifications);
     }
-
-    @Transactional(readOnly = true)
-    public NotificationResponse getUnreadNotificationResponse(String email) {
-
-        Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("Employee not found"));
-
-        List<Notification> notifications =
-                notificationRepository
-                        .findByEmployeeAndReadFalseOrderByCreatedOnDesc(employee);
-
-        long unreadCount = notifications.size();
-
-        return new NotificationResponse(
-                notifications,
-                unreadCount
-        );
-    }
-
-
 }
