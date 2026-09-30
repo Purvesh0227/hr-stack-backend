@@ -2,6 +2,7 @@ package com.hrstack.hr_stack.service;
 
 import com.hrstack.hr_stack.dto.AttendanceOtpSendStatus;
 import com.hrstack.hr_stack.dto.OtpResponse;
+import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.Otp;
 import com.hrstack.hr_stack.exception.BadRequestException;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,6 +22,7 @@ public class OtpService {
 
     private final OtpRepository otpRepository;
     private final NotificationService notificationService;
+    private final InAppNotificationService inAppNotificationService;
     private final EmployeeRepository employeeRepository;
     private final SecureRandom secureRandom = new SecureRandom();
     private final PasswordEncoder passwordEncoder;
@@ -27,11 +30,13 @@ public class OtpService {
     public OtpService(
             OtpRepository otpRepository,
             NotificationService notificationService,
+            InAppNotificationService inAppNotificationService,
             EmployeeRepository employeeRepository,
             PasswordEncoder passwordEncoder) {
 
         this.otpRepository = otpRepository;
         this.notificationService = notificationService;
+        this.inAppNotificationService = inAppNotificationService;
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -124,12 +129,53 @@ public class OtpService {
                         otpValue
                 );
 
-        // Return original OTP to authorized admin frontend
+        /*
+         * Create in-app notifications for active employees.
+         *
+         * IMPORTANT:
+         * The actual OTP is NOT stored in the notification.
+         * Employees receive the OTP through email.
+         */
+        createAttendanceNotifications(department);
+
+        // Return OTP metadata to authorized admin frontend
         return new OtpResponse(
                 savedOtp.getCreatedOn(),
                 savedOtp.getExpiredOn(),
                 savedOtp.getDate(),
                 savedOtp.getDepartment()
         );
+    }
+
+    private void createAttendanceNotifications(String department) {
+
+        List<Employee> employees =
+                employeeRepository.findAll();
+
+        String message =
+                "Attendance OTP has been generated for "
+                        + department
+                        + " department. Please check your email.";
+
+        for (Employee employee : employees) {
+
+            if (employee.getStatus() == null ||
+                    !"ACTIVE".equalsIgnoreCase(
+                            employee.getStatus())) {
+                continue;
+            }
+
+            if (employee.getRole() == null ||
+                    !"EMPLOYEE".equalsIgnoreCase(
+                            employee.getRole())) {
+                continue;
+            }
+
+            inAppNotificationService.createNotification(
+                    employee.getId(),
+                    "ATTENDANCE",
+                    message
+            );
+        }
     }
 }
