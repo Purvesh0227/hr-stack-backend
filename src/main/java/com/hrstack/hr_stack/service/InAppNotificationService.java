@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.service;
 
+import com.hrstack.hr_stack.dto.NotificationResponse;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.Notification;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
@@ -58,19 +59,6 @@ public class InAppNotificationService {
                 .findByEmployeeOrderByCreatedOnDesc(employee);
     }
 
-    @Transactional(readOnly = true)
-    public List<Notification> getUnreadNotifications(
-            String email) {
-
-        Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("Employee not found"));
-
-        return notificationRepository
-                .findByEmployeeAndReadFalseOrderByCreatedOnDesc(
-                        employee
-                );
-    }
 
     @Transactional(readOnly = true)
     public long getUnreadCount(String email) {
@@ -130,5 +118,24 @@ public class InAppNotificationService {
         notificationRepository.saveAll(notifications);
     }
 
-    
+    @Transactional(readOnly = true)
+    public NotificationResponse getUnreadNotificationResponse(String email) {
+
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Employee not found"));
+
+        List<Notification> notifications =
+                notificationRepository
+                        .findByEmployeeAndReadFalseOrderByCreatedOnDesc(employee);
+
+        long unreadCount = notifications.size();
+
+        return new NotificationResponse(
+                notifications,
+                unreadCount
+        );
+    }
+
+
 }
