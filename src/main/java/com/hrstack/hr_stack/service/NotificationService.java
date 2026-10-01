@@ -117,6 +117,11 @@ public class NotificationService {
     public void sendDocumentVerificationRequest(
             Employee employee) {
 
+        System.out.println(
+                "DOCUMENT EMAIL: Preparing email for "
+                        + employee.getEmail()
+        );
+
         String htmlBody =
                 emailService.loadTemplate(
                         "templates/email/document-verification.html"
@@ -134,6 +139,11 @@ public class NotificationService {
                         "{{documentsUrl}}",
                         documentsUrl
                 );
+
+        System.out.println(
+                "DOCUMENT EMAIL: Template loaded, sending email to "
+                        + employee.getEmail()
+        );
 
         emailService.sendHtmlEmail(
                 employee.getEmail(),

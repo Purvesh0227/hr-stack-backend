@@ -12,15 +12,16 @@ import com.hrstack.hr_stack.repository.EmployeeRepository;
 import com.hrstack.hr_stack.repository.SalarySlipRepository;
 import com.hrstack.hr_stack.repository.SalaryStructureRepository;
 import com.hrstack.hr_stack.util.SalaryCalculationUtil;
-import org.springframework.stereotype.Service;
-
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
+import java.time.format.TextStyle;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -33,7 +34,7 @@ public class SalaryCalculationService {
     private final PdfGenerationService pdfGenerationService;
     private final EmployeeRepository employeeRepository;
     private final SalaryFileStorageService salaryFileStorageService;
-
+    private final InAppNotificationService inAppNotificationService;
 
     @Value("${salary-slip.replacement-window-months}")
     private long replacementWindowMonths;
@@ -45,8 +46,8 @@ public class SalaryCalculationService {
             PdfGenerationService pdfGenerationService,
             EmployeeRepository employeeRepository,
             SalaryFileStorageService salaryFileStorageService,
-            TempFileStorageService tempFileStorageService) {
-
+            TempFileStorageService tempFileStorageService,
+            InAppNotificationService inAppNotificationService) {
         this.salarySlipRepository = salarySlipRepository;
         this.salaryStructureRepository = salaryStructureRepository;
         this.attendanceRepository = attendanceRepository;
@@ -54,24 +55,16 @@ public class SalaryCalculationService {
         this.employeeRepository = employeeRepository;
         this.salaryFileStorageService = salaryFileStorageService;
         this.tempFileStorageService = tempFileStorageService;
+        this.inAppNotificationService = inAppNotificationService;
     }
 
-    public SalarySlip generateSalary(
-            String empId,
-            int month,
-            int year) {
-
-        // Validate month
+    public SalarySlip generateSalary(String empId,int month,int year) {
         if (month < 1 || month > 12) {
             throw new BadRequestException("Invalid month");
         }
 
-        // Validate that the requested month is completed
-        YearMonth requestedMonth =
-                YearMonth.of(year, month);
-
-        YearMonth currentMonth =
-                YearMonth.now(ZoneOffset.UTC);
+        YearMonth requestedMonth = YearMonth.of(year,month);
+        YearMonth currentMonth = YearMonth.now(ZoneOffset.UTC);
 
         if (!requestedMonth.isBefore(currentMonth)) {
             throw new BadRequestException(
@@ -79,22 +72,19 @@ public class SalaryCalculationService {
             );
         }
 
-        //prevent duplicate salary generation
-
-        if(salarySlipRepository.findByEmpIdAndMonthAndYear(empId, month, year).isPresent()){
-            throw new BadRequestException("Salary slip already exists for employee "
-                    + empId
-                    + "for"
-                    + month
-                    + "/"
-                    + year
+        if (salarySlipRepository.findByEmpIdAndMonthAndYear(empId,month,year).isPresent()) {
+            throw new BadRequestException(
+                    "Salary slip already exists for employee "
+                            + empId
+                            + " for "
+                            + month
+                            + "/"
+                            + year
             );
         }
 
-        // Get salary structure
         SalaryStructure structure =
-                salaryStructureRepository
-                        .findByEmpId(empId)
+                salaryStructureRepository.findByEmpId(empId)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Salary structure not found for employee: "
@@ -102,15 +92,11 @@ public class SalaryCalculationService {
                                 )
                         );
 
-        // Get employee attendance
         List<Attendance> attendances =
                 attendanceRepository.findByEmpId(empId);
 
-        // Attendance calculation
         int workingDays =
-                SalaryCalculationUtil.calculateWorkingDays(
-                        requestedMonth
-                );
+                SalaryCalculationUtil.calculateWorkingDays(requestedMonth);
 
         int presentDays =
                 SalaryCalculationUtil.calculatePresentDays(
@@ -124,7 +110,6 @@ public class SalaryCalculationService {
                         presentDays
                 );
 
-        // Salary calculation
         BigDecimal grossSalary =
                 SalaryCalculationUtil.calculateGrossSalary(
                         structure.getBasic(),
@@ -142,9 +127,7 @@ public class SalaryCalculationService {
         BigDecimal pfDeduction =
                 SalaryCalculationUtil.calculatePf(
                         structure.getBasic(),
-                        Boolean.TRUE.equals(
-                                structure.getPfApplicable()
-                        )
+                        Boolean.TRUE.equals(structure.getPfApplicable())
                 );
 
         BigDecimal totalDeduction =
@@ -159,9 +142,7 @@ public class SalaryCalculationService {
                         totalDeduction
                 );
 
-        // Create salary slip
         SalarySlip salarySlip = new SalarySlip();
-
         salarySlip.setEmpId(empId);
         salarySlip.setMonth(month);
         salarySlip.setYear(year);
@@ -172,50 +153,38 @@ public class SalaryCalculationService {
         salarySlip.setDeduction(totalDeduction);
         salarySlip.setNetSalary(netSalary);
 
-        // Get employee details
         Employee employee =
-                employeeRepository
-                        .findByEmpId(empId)
+                employeeRepository.findByEmpId(empId)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Employee not found: " + empId
                                 )
                         );
 
-        // Prepare PDF data
-        Map<String, Object> pdfData = new HashMap<>();
+        Map<String,Object> pdfData = new HashMap<>();
 
         pdfData.put(
                 "month",
                 requestedMonth.getMonth().toString()
         );
-
-        pdfData.put("year", year);
-
+        pdfData.put("year",year);
         pdfData.put(
                 "employeeName",
-                employee.getFirstName()
-                        + " "
-                        + employee.getLastName()
+                employee.getFirstName() + " " + employee.getLastName()
         );
-
-        pdfData.put("empId", employee.getEmpId());
-        pdfData.put("department", "IT");
-
-        pdfData.put("workingDays", workingDays);
-        pdfData.put("presentDays", presentDays);
-        pdfData.put("absentDays", absentDays);
-
-        pdfData.put("basic", structure.getBasic());
-        pdfData.put("hra", structure.getHra());
-        pdfData.put("allowances", structure.getAllowances());
-        pdfData.put("grossSalary", grossSalary);
-
-        pdfData.put("pf", pfDeduction);
-        pdfData.put("otherDeductions", BigDecimal.ZERO);
-        pdfData.put("totalDeductions", totalDeduction);
-
-        pdfData.put("netSalary", netSalary);
+        pdfData.put("empId",employee.getEmpId());
+        pdfData.put("department","IT");
+        pdfData.put("workingDays",workingDays);
+        pdfData.put("presentDays",presentDays);
+        pdfData.put("absentDays",absentDays);
+        pdfData.put("basic",structure.getBasic());
+        pdfData.put("hra",structure.getHra());
+        pdfData.put("allowances",structure.getAllowances());
+        pdfData.put("grossSalary",grossSalary);
+        pdfData.put("pf",pfDeduction);
+        pdfData.put("otherDeductions",BigDecimal.ZERO);
+        pdfData.put("totalDeductions",totalDeduction);
+        pdfData.put("netSalary",netSalary);
 
         byte[] pdf =
                 pdfGenerationService.generatePdf(
@@ -223,7 +192,6 @@ public class SalaryCalculationService {
                         pdfData
                 );
 
-        // Upload the PDF to MinIO and store only the object key
         String objectKey =
                 tempFileStorageService.uploadSalarySlipToTemp(
                         empId,
@@ -235,20 +203,32 @@ public class SalaryCalculationService {
         salarySlip.setPdfObjectKey(objectKey);
         salarySlip.setGeneratedAt(System.currentTimeMillis());
 
-        return salarySlipRepository.save(salarySlip);
+        SalarySlip savedSalarySlip =
+                salarySlipRepository.save(salarySlip);
+
+        String monthName =
+                requestedMonth.getMonth()
+                        .getDisplayName(
+                                TextStyle.FULL,
+                                Locale.ENGLISH
+                        );
+
+        inAppNotificationService.createNotification(
+                employee.getId(),
+                "SALARY_SLIP_GENERATED",
+                "Your salary slip for "
+                        + monthName
+                        + " "
+                        + year
+                        + " has been generated."
+        );
+
+        return savedSalarySlip;
     }
 
-    public SalarySlip getSalarySlip(
-            String empId,
-            int month,
-            int year) {
-
+    public SalarySlip getSalarySlip(String empId,int month,int year) {
         return salarySlipRepository
-                .findByEmpIdAndMonthAndYear(
-                        empId,
-                        month,
-                        year
-                )
+                .findByEmpIdAndMonthAndYear(empId,month,year)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Salary slip not found for employee: "
@@ -257,19 +237,50 @@ public class SalaryCalculationService {
                 );
     }
 
-    public SalarySlip updateSalarySlip(
-            SalarySlip salarySlip) {
-
+    public SalarySlip updateSalarySlip(SalarySlip salarySlip) {
         return salarySlipRepository.save(salarySlip);
     }
 
-    public List<SalarySlip> viewSalarySlips(
-            String email,
-            String scope) {
+    public void notifySalarySlipReplaced(
+            SalarySlip salarySlip) {
 
         Employee employee =
-                employeeRepository
-                        .findByEmail(email)
+                employeeRepository.findByEmpId(
+                        salarySlip.getEmpId()
+                ).orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Employee not found: "
+                                        + salarySlip.getEmpId()
+                        )
+                );
+
+        YearMonth salaryMonth =
+                YearMonth.of(
+                        salarySlip.getYear(),
+                        salarySlip.getMonth()
+                );
+
+        String monthName =
+                salaryMonth.getMonth()
+                        .getDisplayName(
+                                TextStyle.FULL,
+                                Locale.ENGLISH
+                        );
+
+        inAppNotificationService.createNotification(
+                employee.getId(),
+                "SALARY_SLIP_REPLACED",
+                "Your salary slip for "
+                        + monthName
+                        + " "
+                        + salarySlip.getYear()
+                        + " has been updated."
+        );
+    }
+
+    public List<SalarySlip> viewSalarySlips(String email,String scope) {
+        Employee employee =
+                employeeRepository.findByEmail(email)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Employee not found"
@@ -279,48 +290,32 @@ public class SalaryCalculationService {
         List<SalarySlip> salarySlips;
 
         if ("MY".equalsIgnoreCase(scope)) {
-
             salarySlips =
-                    salarySlipRepository
-                            .findByEmpId(employee.getEmpId());
-
+                    salarySlipRepository.findByEmpId(employee.getEmpId());
         } else if ("ALL".equalsIgnoreCase(scope)) {
-
-            if (!"ADMIN".equalsIgnoreCase(
-                    employee.getRole())) {
-
+            if (!"ADMIN".equalsIgnoreCase(employee.getRole())) {
                 throw new AccessDeniedException(
                         "Access denied. You are not Admin"
                 );
             }
-
-            salarySlips =
-                    salarySlipRepository.findAll();
-
+            salarySlips = salarySlipRepository.findAll();
         } else {
-
             throw new BadRequestException(
                     "Invalid salary slip scope. Use MY or ALL"
             );
         }
 
-        // Generate signed URL for every salary slip
-        // Generate signed URL and replacement status
         salarySlips.forEach(salarySlip -> {
-
             if (salarySlip.getPdfObjectKey() != null) {
-
                 String signedUrl =
                         salaryFileStorageService
                                 .getSalarySlipSignedUrlFromEitherBucket(
                                         salarySlip.getPdfObjectKey()
                                 );
-
                 salarySlip.setPdfUrl(signedUrl);
             }
 
             if (salarySlip.getGeneratedAt() != null) {
-
                 long replacementWindow =
                         replacementWindowMonths
                                 * 30L
@@ -333,10 +328,9 @@ public class SalaryCalculationService {
                         salarySlip.getGeneratedAt()
                                 + replacementWindow;
 
-                boolean replaceAllowed =
-                        System.currentTimeMillis() <= expiryTime;
-
-                salarySlip.setReplaceAllowed(replaceAllowed);
+                salarySlip.setReplaceAllowed(
+                        System.currentTimeMillis() <= expiryTime
+                );
             } else {
                 salarySlip.setReplaceAllowed(false);
             }

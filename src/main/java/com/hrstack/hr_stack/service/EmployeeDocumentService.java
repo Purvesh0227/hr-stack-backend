@@ -13,13 +13,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.hrstack.hr_stack.dto.EmployeeDocumentUploadResponse;
 
+import java.util.List;
 import java.util.UUID;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.exception.ResourceNotFoundException;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 
 import java.util.UUID;
-
+import java.util.List;
 @Service
 public class EmployeeDocumentService {
 
@@ -31,6 +32,9 @@ public class EmployeeDocumentService {
 
     @Autowired
     private MinioStorageService minioStorageService;
+
+    @Autowired
+    private InAppNotificationService inAppNotificationService;
 
     @Value("${s3.temp-bucket}")
     private String tempBucket;
@@ -133,7 +137,21 @@ public class EmployeeDocumentService {
         documents.setAddressProofNumber(addressProofNumber);
         documents.setAddressProofObjectKey(addressProofObjectKey);
 
-        return employeeDocumentRepository.save(documents);
+        EmployeeDocument savedDocuments =
+                employeeDocumentRepository.save(documents);
+
+        List<Employee> admins =
+                employeeRepository.findByRoleIgnoreCase("ADMIN");
+
+        for (Employee admin : admins) {
+            inAppNotificationService.createNotification(
+                    admin.getId(),
+                    "DOCUMENTS_UPLOADED",
+                    "Documents have been uploaded by an employee. Action required."
+            );
+        }
+
+        return savedDocuments;
     }
 
     public EmployeeDocumentUploadResponse generateDocumentUploadUrl(
