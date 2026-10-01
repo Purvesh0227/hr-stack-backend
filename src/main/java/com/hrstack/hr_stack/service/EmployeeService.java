@@ -34,6 +34,9 @@ public class EmployeeService {
     @Autowired
     private MinioStorageService minioStorageService;
 
+    @Autowired
+    private InAppNotificationService inAppNotificationService;
+
     @Value("${s3.temp-bucket}")
     private String tempBucket;
 
@@ -51,49 +54,33 @@ public class EmployeeService {
     // REGISTER EMPLOYEE
     // =========================================================
 
-    public Employee registerEmployee(
-            RegisterEmployeeRequest request) {
-
-        if (employeeRepository.existsByEmailIgnoreCase(
-                request.getEmail())) {
-
+    public Employee registerEmployee(RegisterEmployeeRequest request) {
+        if (employeeRepository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new BadRequestException(
                     "Email already exists. Please use another email."
             );
         }
 
         Employee employee = new Employee();
-
         employee.setFirstName(request.getFirstName());
         employee.setLastName(request.getLastName());
         employee.setEmail(request.getEmail());
         employee.setMobile(request.getMobile());
-
         employee.setEmpId(generateEmpId());
         employee.setRole("EMPLOYEE");
+        employee.setPassword(encoder.encode(request.getPassword()));
 
-        employee.setPassword(
-                encoder.encode(request.getPassword())
-        );
-
-        // Profile photo
         if (request.getProfilePhoto() != null
                 && !request.getProfilePhoto().isEmpty()) {
-
-            MultipartFile profilePhoto =
-                    request.getProfilePhoto();
-
+            MultipartFile profilePhoto = request.getProfilePhoto();
             validateProfilePhoto(profilePhoto);
 
             try {
-
                 String objectKey =
                         "employee-profile/"
                                 + employee.getEmpId()
                                 + "/profile-picture"
-                                + getExtension(
-                                profilePhoto.getOriginalFilename()
-                        );
+                                + getExtension(profilePhoto.getOriginalFilename());
 
                 minioStorageService.upload(
                         permanentBucket,
@@ -103,9 +90,7 @@ public class EmployeeService {
                 );
 
                 employee.setProfilePhotoObjectKey(objectKey);
-
             } catch (Exception e) {
-
                 throw new RuntimeException(
                         "Failed to upload profile photo",
                         e
@@ -117,7 +102,20 @@ public class EmployeeService {
         employee.setCreatedOn(currentTime);
         employee.setUpdatedOn(currentTime);
 
-        return employeeRepository.save(employee);
+        Employee savedEmployee = employeeRepository.save(employee);
+
+        List<Employee> admins =
+                employeeRepository.findByRoleIgnoreCase("ADMIN");
+
+        for (Employee admin : admins) {
+            inAppNotificationService.createNotification(
+                    admin.getId(),
+                    "NEW_EMPLOYEE_REGISTERED",
+                    "A new employee has registered. Action required."
+            );
+        }
+
+        return savedEmployee;
     }
 
 
@@ -530,6 +528,12 @@ public class EmployeeService {
                         savedEmployee
                 );
 
+        inAppNotificationService.createNotification(
+                savedEmployee.getId(),
+                "DOCUMENT_REQUEST",
+                "Please upload the required documents for verification."
+        );
+
         return savedEmployee;
     }
 
@@ -620,12 +624,22 @@ public class EmployeeService {
                 documents.getAddressProofObjectKey()
         );
 
-        // Activate employee
         employee.setStatus(EmployeeStatus.ACTIVE.name());
 
-        employee.setUpdatedOn(System.currentTimeMillis());
+        Employee savedEmployee = employeeRepository.save(employee);
 
-        return employeeRepository.save(employee);
+        inAppNotificationService.createNotification(
+                savedEmployee.getId(),
+                "DOCUMENTS_VERIFIED",
+                "Your documents have been verified successfully."
+        );
+        inAppNotificationService.createNotification(
+                savedEmployee.getId(),
+                "ACCOUNT_ACTIVATED",
+                "Your account has been activated successfully."
+        );
+
+        return savedEmployee;
     }
 
 

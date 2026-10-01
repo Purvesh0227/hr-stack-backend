@@ -113,6 +113,10 @@ public class SalaryController {
                         salarySlip
                 );
 
+        salaryCalculationService.notifySalarySlipReplaced(
+                updatedSalarySlip
+        );
+
         return ResponseEntity.ok(updatedSalarySlip);
     }
 
