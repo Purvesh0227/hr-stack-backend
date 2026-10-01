@@ -1,11 +1,11 @@
 package com.hrstack.hr_stack.controller;
 
-import com.hrstack.hr_stack.dto.LoginRequest;
-import com.hrstack.hr_stack.dto.LoginResponse;
+import com.hrstack.hr_stack.dto.*;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.security.JwtService;
 import com.hrstack.hr_stack.service.EmployeeService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +17,6 @@ import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
-import com.hrstack.hr_stack.dto.RegisterEmployeeRequest;
-import com.hrstack.hr_stack.dto.EmployeeProfileResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -94,11 +92,14 @@ public class EmployeeController {
     // =========================================================
 
     @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/allEmployees")
-    public List<Employee> getAllEmployees(
-            @RequestParam String email) {
+    public PageResponse<Employee> getAllEmployees(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        return employeeService.getAllEmployees(email);
+        return employeeService.getAllEmployees(search, page, size);
     }
 
 

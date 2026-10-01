@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.service;
 
+import com.hrstack.hr_stack.dto.PageResponse;
 import com.hrstack.hr_stack.entity.Attendance;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.Otp;
@@ -9,15 +10,20 @@ import com.hrstack.hr_stack.exception.ResourceNotFoundException;
 import com.hrstack.hr_stack.repository.AttendanceRepository;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import com.hrstack.hr_stack.repository.OtpRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
 @Service
 public class AttendanceService {
+
+    private static final int MAX_PAGE_SIZE = 50;
+    private static final int MAX_SEARCH_LENGTH = 50;
 
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
@@ -104,10 +110,15 @@ public class AttendanceService {
         );
     }
 
-    // View attendance
-    public List<Attendance> viewAttendance(
+    // View attendance (server-side search + date range + pagination)
+    public PageResponse<Attendance> viewAttendance(
             String email,
-            String scope) {
+            String scope,
+            String search,
+            Long from,
+            Long to,
+            int page,
+            int size) {
 
         Employee employee =
                 employeeRepository
@@ -118,11 +129,34 @@ public class AttendanceService {
                                 )
                         );
 
-        // MY attendance
+        // Optional date range. Missing values mean "no limit".
+        long safeFrom = from == null ? 0L : Math.max(from, 0L);
+        long safeTo = to == null ? Long.MAX_VALUE : to;
+
+        if (safeFrom > safeTo) {
+            throw new BadRequestException(
+                    "'from' must not be after 'to'"
+            );
+        }
+
+        // Newest first. Always sort, otherwise page boundaries are not stable.
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.min(Math.max(size, 1), MAX_PAGE_SIZE),
+                Sort.by(Sort.Direction.DESC, "markedOn")
+        );
+
+        // MY attendance: identity comes from the JWT, search is ignored
         if ("MY".equalsIgnoreCase(scope)) {
 
-            return attendanceRepository
-                    .findByEmpId(employee.getEmpId());
+            return PageResponse.from(
+                    attendanceRepository.findByEmpIdAndMarkedOnBetween(
+                            employee.getEmpId(),
+                            safeFrom,
+                            safeTo,
+                            pageable
+                    )
+            );
         }
 
         // ALL attendance - ADMIN only
@@ -136,7 +170,21 @@ public class AttendanceService {
                 );
             }
 
-            return attendanceRepository.findAll();
+            String term = search == null ? "" : search.trim();
+
+            if (term.length() > MAX_SEARCH_LENGTH) {
+                term = term.substring(0, MAX_SEARCH_LENGTH);
+            }
+
+            return PageResponse.from(
+                    attendanceRepository
+                            .findByEmpIdContainingIgnoreCaseAndMarkedOnBetween(
+                                    term,
+                                    safeFrom,
+                                    safeTo,
+                                    pageable
+                            )
+            );
         }
 
         throw new BadRequestException(
