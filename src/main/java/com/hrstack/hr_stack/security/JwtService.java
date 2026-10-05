@@ -1,20 +1,28 @@
 package com.hrstack.hr_stack.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class JwtService {
 
     private final SecretKey secretKey;
     private final long expiration;
+
+//reset password
+    private static final String PURPOSE = "purpose";
+    private static final String RESET = "PASSWORD_RESET";
+    private static final long RESET_TTL_MS = 10 * 60 * 1000L;
 
     public JwtService(
             @Value("${jwt.secret}") String secret,
@@ -24,6 +32,25 @@ public class JwtService {
                 secret.getBytes(StandardCharsets.UTF_8)
         );
         this.expiration = expiration;
+    }
+
+    public String generateResetToken(String email, UUID otpId) {
+        return Jwts.builder()
+                .subject(email)
+                .claim(PURPOSE, RESET)
+                .id(otpId.toString())                 // links token to OTP row
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + RESET_TTL_MS))
+                .signWith(secretKey)
+                .compact();
+    }
+
+    public Claims parseResetToken(String token) {
+        Claims claims = getClaims(token);
+        if (!RESET.equals(claims.get(PURPOSE, String.class))) {
+            throw new JwtException("Wrong token purpose");
+        }
+        return claims;
     }
 
     public String generateToken(String email, String role) {
@@ -49,8 +76,7 @@ public class JwtService {
 
     public boolean isTokenValid(String token) {
         try {
-            getClaims(token);
-            return true;
+            return getClaims(token).get(PURPOSE) == null;
         } catch (Exception e) {
             return false;
         }

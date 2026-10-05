@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.controller;
 
+import com.hrstack.hr_stack.dto.PageResponse;
 import com.hrstack.hr_stack.entity.Attendance;
 import com.hrstack.hr_stack.service.AttendanceService;
 
@@ -10,7 +11,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -56,16 +56,26 @@ public class AttendanceController {
     }
 
     @GetMapping("/attendance/view")
-    public ResponseEntity<List<Attendance>> viewAttendance(
+    public ResponseEntity<PageResponse<Attendance>> viewAttendance(
             Authentication authentication,
-            @RequestParam(defaultValue = "MY") String scope) {
+            @RequestParam(defaultValue = "MY") String scope,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long from,
+            @RequestParam(required = false) Long to,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "7") int size) {
 
         String email = authentication.getName();
 
-        List<Attendance> attendances =
+        PageResponse<Attendance> attendances =
                 attendanceService.viewAttendance(
                         email,
-                        scope
+                        scope,
+                        search,
+                        from,
+                        to,
+                        page,
+                        size
                 );
 
         return ResponseEntity.ok(attendances);

@@ -4,7 +4,9 @@ import com.hrstack.hr_stack.dto.AttendanceOtpSendStatus;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.List;
 
@@ -150,5 +152,16 @@ public class NotificationService {
                 "HR-Stack - Document Verification Required",
                 htmlBody
         );
+    }
+
+    @Async
+    public void sendPasswordResetOtp(Employee employee, String otp) {
+        String html = emailService
+                .loadTemplate("templates/email/password-reset-otp.html")
+                .replace("{{name}}", HtmlUtils.htmlEscape(employee.getFirstName()))
+                .replace("{{otp}}", otp);
+
+        emailService.sendHtmlEmail(
+                employee.getEmail(),"HR-Stack Password Reset OTP",html);
     }
 }

@@ -1,11 +1,11 @@
 package com.hrstack.hr_stack.controller;
 
-import com.hrstack.hr_stack.dto.LoginRequest;
-import com.hrstack.hr_stack.dto.LoginResponse;
+import com.hrstack.hr_stack.dto.*;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.security.JwtService;
 import com.hrstack.hr_stack.service.EmployeeService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +17,6 @@ import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
-import com.hrstack.hr_stack.dto.RegisterEmployeeRequest;
-import com.hrstack.hr_stack.dto.EmployeeProfileResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -94,11 +92,14 @@ public class EmployeeController {
     // =========================================================
 
     @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/allEmployees")
-    public List<Employee> getAllEmployees(
-            @RequestParam String email) {
+    public PageResponse<Employee> getAllEmployees(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        return employeeService.getAllEmployees(email);
+        return employeeService.getAllEmployees(search, page, size);
     }
 
 
@@ -106,6 +107,7 @@ public class EmployeeController {
     // GET ALL ADMINS
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/allAdmins")
     public List<Employee> getAllAdmins(
@@ -119,6 +121,7 @@ public class EmployeeController {
     // GET ADMIN PROFILE
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/adminProfile")
     public EmployeeProfileResponse getAdminProfile(
@@ -159,6 +162,7 @@ public class EmployeeController {
     // GET EMPLOYEE BY EMAIL
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN') or #email.equalsIgnoreCase(authentication.name)")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/email/{email}")
     public Employee getEmployeeByEmail(
@@ -172,6 +176,7 @@ public class EmployeeController {
     // GET EMPLOYEE BY UUID
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN') or @employeeSecurity.isSelf(#uuid, authentication)")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{uuid}")
     public EmployeeProfileResponse getEmployeeById(
@@ -186,6 +191,7 @@ public class EmployeeController {
     // Existing API - JSON
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN') or @employeeSecurity.isSelf(#uuid, authentication)")
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping(
             value = "/{uuid}",
@@ -210,6 +216,7 @@ public class EmployeeController {
     // Same existing PUT /employee/{uuid} API
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN') or @employeeSecurity.isSelf(#uuid, authentication)")
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping(
             value = "/{uuid}",
@@ -237,6 +244,7 @@ public class EmployeeController {
     // DELETE EMPLOYEE
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{uuid}")
     public ResponseEntity<Map<String, String>> deleteEmployee(

@@ -36,7 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-
         String authHeader =
                 request.getHeader("Authorization");
 
@@ -50,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        // Invalid token
+        // Invalid / expired token, or a password-reset token
         if (!jwtService.isTokenValid(token)) {
 
             filterChain.doFilter(request, response);
@@ -64,17 +63,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .findByEmail(email)
                         .orElse(null);
 
-        if (employee == null) {
+        // Unknown user, or user without a role -> stay unauthenticated
+        if (employee == null || employee.getRole() == null) {
 
             filterChain.doFilter(request, response);
             return;
         }
 
         String role = employee.getRole();
-
-        System.out.println("JWT EMAIL = " + email);
-        System.out.println("DB ROLE = " + role);
-        System.out.println("AUTHORITY = ROLE_" + role.toUpperCase());
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
@@ -91,21 +87,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder
                 .getContext()
                 .setAuthentication(authentication);
-        System.out.println(
-                "AUTHENTICATED = "
-                        + SecurityContextHolder
-                        .getContext()
-                        .getAuthentication()
-                        .isAuthenticated()
-        );
-
-        System.out.println(
-                "AUTHORITIES = "
-                        + SecurityContextHolder
-                        .getContext()
-                        .getAuthentication()
-                        .getAuthorities()
-        );
 
         filterChain.doFilter(request, response);
     }

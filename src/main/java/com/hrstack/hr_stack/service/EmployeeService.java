@@ -1,6 +1,7 @@
 package com.hrstack.hr_stack.service;
 
 import com.hrstack.hr_stack.dto.EmployeeProfileResponse;
+import com.hrstack.hr_stack.dto.PageResponse;
 import com.hrstack.hr_stack.dto.RegisterEmployeeRequest;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.EmployeeDocument;
@@ -12,13 +13,18 @@ import com.hrstack.hr_stack.repository.EmployeeDocumentRepository;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+
 import java.time.Year;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import static org.apache.commons.io.FilenameUtils.getExtension;
 
@@ -203,22 +209,12 @@ public class EmployeeService {
             String email,
             String password) {
 
-        Employee employee =
-                employeeRepository
-                        .findByEmail(email)
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Enter Valid Email"
-                                )
-                        );
+        Employee employee = employeeRepository
+                .findByEmailIgnoreCase(email == null ? "" : email.trim())
+                .orElseThrow(() -> new BadRequestException("Invalid email or password"));
 
-        if (!encoder.matches(
-                password,
-                employee.getPassword())) {
-
-            throw new BadRequestException(
-                    "Enter Valid Password"
-            );
+        if (!encoder.matches(password, employee.getPassword())) {
+            throw new BadRequestException("Invalid email or password");
         }
 
         return employee;
@@ -229,28 +225,34 @@ public class EmployeeService {
     // GET ALL EMPLOYEES
     // =========================================================
 
-    public List<Employee> getAllEmployees(
-            String email) {
+    private static final int MAX_PAGE_SIZE = 50;
+    private static final int MAX_SEARCH_LENGTH = 50;
 
-        Employee employee =
-                employeeRepository
-                        .findByEmail(email)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "User not found"
-                                )
-                        );
+    public PageResponse<Employee> getAllEmployees(
+            String search,
+            int page,
+            int size) {
 
-        if (!"ADMIN".equalsIgnoreCase(
-                employee.getRole())) {
-
-            throw new AccessDeniedException(
-                    "Access denied. You are not Admin"
-            );
+        String term = search == null ? "" : search.trim();
+        if (term.length() > MAX_SEARCH_LENGTH) {
+            term = term.substring(0, MAX_SEARCH_LENGTH);
         }
 
-        return employeeRepository
-                .findByRoleIgnoreCase("EMPLOYEE");
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+
+        // Always sort, otherwise page boundaries are not stable
+        Pageable pageable = PageRequest.of(
+                safePage,
+                safeSize,
+                Sort.by(Sort.Direction.ASC, "empId")
+        );
+
+        return PageResponse.from(
+                employeeRepository
+                        .findByRoleIgnoreCaseAndEmpIdContainingIgnoreCase(
+                                "EMPLOYEE", term, pageable)
+        );
     }
 
 
