@@ -121,7 +121,8 @@ public class SalaryController {
     }
 
     @GetMapping("/download")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('EMPLOYEE') and @employeeSecurity.isOwnEmpId(#empId, authentication))")
     public ResponseEntity<byte[]> downloadSalarySlip(
             @RequestParam String empId,
             @RequestParam int month,
@@ -165,7 +166,8 @@ public class SalaryController {
     }
 
     @GetMapping("/{empId}/salary-slip/url")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('EMPLOYEE') and @employeeSecurity.isOwnEmpId(#empId, authentication))")
     public ResponseEntity<String> getSalarySlipUrl(
             @PathVariable String empId,
             @RequestParam int month,
@@ -178,19 +180,12 @@ public class SalaryController {
                         year
                 );
 
-        System.out.println(
-                "PDF OBJECT KEY = "
-                        + salarySlip.getPdfObjectKey()
-        );
-
         String signedUrl =
                 salaryFileStorageService.getSalarySlipSignedUrlFromEitherBucket(
                         salarySlip.getPdfObjectKey()
                 );
 
-        System.out.println(
-                "SIGNED URL = " + signedUrl
-        );
+
 
         return ResponseEntity.ok(signedUrl);
     }

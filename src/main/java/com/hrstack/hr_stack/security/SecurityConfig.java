@@ -2,12 +2,14 @@ package com.hrstack.hr_stack.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -56,6 +58,13 @@ public class SecurityConfig {
                         )
                 )
 
+                // Not logged in / expired token -> 401 (not 403)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
+                        )
+                )
+
                 // Authorization
                 .authorizeHttpRequests(auth -> auth
 
@@ -70,10 +79,13 @@ public class SecurityConfig {
                         // Public APIs
                         .requestMatchers(
                                 "/employee/register",
-                                "/employee/login"
+                                "/employee/login",
+                                "/employee/forgot-password",
+                                "/employee/verify-reset-otp",
+                                "/employee/reset-password"
                         ).permitAll()
 
-                        // Admin only
+
                         // Admin only
                         .requestMatchers(
                                 "/employee/createAdmin",

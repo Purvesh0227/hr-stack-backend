@@ -209,22 +209,12 @@ public class EmployeeService {
             String email,
             String password) {
 
-        Employee employee =
-                employeeRepository
-                        .findByEmail(email)
-                        .orElseThrow(() ->
-                                new BadRequestException(
-                                        "Enter Valid Email"
-                                )
-                        );
+        Employee employee = employeeRepository
+                .findByEmailIgnoreCase(email == null ? "" : email.trim())
+                .orElseThrow(() -> new BadRequestException("Invalid email or password"));
 
-        if (!encoder.matches(
-                password,
-                employee.getPassword())) {
-
-            throw new BadRequestException(
-                    "Enter Valid Password"
-            );
+        if (!encoder.matches(password, employee.getPassword())) {
+            throw new BadRequestException("Invalid email or password");
         }
 
         return employee;

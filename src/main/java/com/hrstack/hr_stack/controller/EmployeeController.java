@@ -107,6 +107,7 @@ public class EmployeeController {
     // GET ALL ADMINS
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/allAdmins")
     public List<Employee> getAllAdmins(
@@ -120,6 +121,7 @@ public class EmployeeController {
     // GET ADMIN PROFILE
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/adminProfile")
     public EmployeeProfileResponse getAdminProfile(
@@ -160,6 +162,7 @@ public class EmployeeController {
     // GET EMPLOYEE BY EMAIL
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN') or #email.equalsIgnoreCase(authentication.name)")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/email/{email}")
     public Employee getEmployeeByEmail(
@@ -173,6 +176,7 @@ public class EmployeeController {
     // GET EMPLOYEE BY UUID
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN') or @employeeSecurity.isSelf(#uuid, authentication)")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{uuid}")
     public EmployeeProfileResponse getEmployeeById(
@@ -187,6 +191,7 @@ public class EmployeeController {
     // Existing API - JSON
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN') or @employeeSecurity.isSelf(#uuid, authentication)")
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping(
             value = "/{uuid}",
@@ -211,6 +216,7 @@ public class EmployeeController {
     // Same existing PUT /employee/{uuid} API
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN') or @employeeSecurity.isSelf(#uuid, authentication)")
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping(
             value = "/{uuid}",
@@ -238,6 +244,7 @@ public class EmployeeController {
     // DELETE EMPLOYEE
     // =========================================================
 
+    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{uuid}")
     public ResponseEntity<Map<String, String>> deleteEmployee(
