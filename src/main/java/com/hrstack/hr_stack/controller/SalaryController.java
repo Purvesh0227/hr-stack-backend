@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.controller;
 
+import com.hrstack.hr_stack.dto.PageResponse;
 import com.hrstack.hr_stack.entity.SalarySlip;
 import com.hrstack.hr_stack.entity.SalaryStructure;
 import com.hrstack.hr_stack.service.SalaryCalculationService;
@@ -150,19 +151,19 @@ public class SalaryController {
 
     @GetMapping("/view")
     @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
-    public ResponseEntity<List<SalarySlip>> viewSalarySlips(
+    public ResponseEntity<PageResponse<SalarySlip>> viewSalarySlips(
             Authentication authentication,
-            @RequestParam(defaultValue = "MY") String scope) {
+            @RequestParam(defaultValue = "MY") String scope,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        String email = authentication.getName();
-
-        List<SalarySlip> salarySlips =
+        return ResponseEntity.ok(
                 salaryCalculationService.viewSalarySlips(
-                        email,
-                        scope
-                );
-
-        return ResponseEntity.ok(salarySlips);
+                        authentication.getName(),
+                        scope, search, month, year, page, size));
     }
 
     @GetMapping("/{empId}/salary-slip/url")

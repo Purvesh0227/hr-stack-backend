@@ -99,7 +99,7 @@ public class PasswordResetService {
         return jwtService.generateResetToken(employee.getEmail(), row.getId());
     }
 
-    // ---------- Phase 8+9: reset password ----------
+    // ---------- reset password ----------
     public void resetPassword(String resetToken, String newPassword) {
         Claims claims;
         try {
@@ -108,7 +108,7 @@ public class PasswordResetService {
             throw new BadRequestException(INVALID_TOKEN);
         }
 
-        // Token must still point to a VERIFIED OTP row (deleted after use => single use)
+
         PasswordResetOtp row = otpRepository
                 .findById(UUID.fromString(claims.getId()))
                 .filter(PasswordResetOtp::isVerified)

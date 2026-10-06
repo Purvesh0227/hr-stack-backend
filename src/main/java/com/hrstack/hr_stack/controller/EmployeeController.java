@@ -96,10 +96,14 @@ public class EmployeeController {
     @GetMapping("/allEmployees")
     public PageResponse<Employee> getAllEmployees(
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "") String status,
+            @RequestParam(required = false) Long from,
+            @RequestParam(required = false) Long to,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        return employeeService.getAllEmployees(search, page, size);
+        return employeeService.getAllEmployees(search,status,from
+                ,to,page, size);
     }
 
 
@@ -107,13 +111,17 @@ public class EmployeeController {
     // GET ALL ADMINS
     // =========================================================
 
-    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/allAdmins")
-    public List<Employee> getAllAdmins(
-            @RequestParam String email) {
+    public PageResponse<Employee> getAllAdmins(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long from,
+            @RequestParam(required = false) Long to,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        return employeeService.getAllAdmins(email);
+        return employeeService.getAllAdmins(search, from, to, page, size);
     }
 
 

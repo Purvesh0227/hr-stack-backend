@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.controller;
 
+import com.hrstack.hr_stack.dto.AttendanceResponse;
 import com.hrstack.hr_stack.dto.PageResponse;
 import com.hrstack.hr_stack.entity.Attendance;
 import com.hrstack.hr_stack.service.AttendanceService;
@@ -56,28 +57,19 @@ public class AttendanceController {
     }
 
     @GetMapping("/attendance/view")
-    public ResponseEntity<PageResponse<Attendance>> viewAttendance(
+    public ResponseEntity<PageResponse<AttendanceResponse>> viewAttendance(
             Authentication authentication,
             @RequestParam(defaultValue = "MY") String scope,
             @RequestParam(defaultValue = "") String search,
             @RequestParam(required = false) Long from,
             @RequestParam(required = false) Long to,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "7") int size) {
+            @RequestParam(defaultValue = "10") int size) {
 
         String email = authentication.getName();
 
-        PageResponse<Attendance> attendances =
+        return ResponseEntity.ok(
                 attendanceService.viewAttendance(
-                        email,
-                        scope,
-                        search,
-                        from,
-                        to,
-                        page,
-                        size
-                );
-
-        return ResponseEntity.ok(attendances);
+                        email, scope, search, from, to, page, size));
     }
 }
