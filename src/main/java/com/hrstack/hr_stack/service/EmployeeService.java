@@ -229,30 +229,59 @@ public class EmployeeService {
     private static final int MAX_SEARCH_LENGTH = 50;
 
     public PageResponse<Employee> getAllEmployees(
-            String search,
-            int page,
-            int size) {
+            String search, String status, Long from, Long to,
+            int page, int size) {
+
+        return searchByRole("EMPLOYEE", search, status, from, to, page, size);
+    }
+
+
+    private PageResponse<Employee> searchByRole(
+            String role, String search, String status, Long from, Long to,
+            int page, int size) {
 
         String term = search == null ? "" : search.trim();
         if (term.length() > MAX_SEARCH_LENGTH) {
             term = term.substring(0, MAX_SEARCH_LENGTH);
         }
 
+        // Only known statuses allowed (whitelist)
+        String statusFilter = "";
+        if (status != null && !status.isBlank()) {
+            try {
+                statusFilter = EmployeeStatus
+                        .valueOf(status.trim().toUpperCase()).name();
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("Invalid status filter.");
+            }
+        }
+
+        long fromMillis = from == null ? 0L : Math.max(from, 0L);
+        long toMillis = to == null ? Long.MAX_VALUE : to;
+
+        if (fromMillis > toMillis) {
+            throw new BadRequestException("Start date cannot be after end date.");
+        }
+
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
 
-        // Always sort, otherwise page boundaries are not stable
         Pageable pageable = PageRequest.of(
-                safePage,
-                safeSize,
-                Sort.by(Sort.Direction.ASC, "empId")
-        );
+                safePage, safeSize, Sort.by(Sort.Direction.ASC, "empId"));
 
         return PageResponse.from(
-                employeeRepository
-                        .findByRoleIgnoreCaseAndEmpIdContainingIgnoreCase(
-                                "EMPLOYEE", term, pageable)
-        );
+                employeeRepository.searchByRole(
+                        role, statusFilter, fromMillis, toMillis,
+                        toLikePattern(term), pageable));
+    }
+
+    // Escapes % and _ so a user typing them can't change the search meaning
+    private String toLikePattern(String term) {
+        String escaped = term.toLowerCase()
+                .replace("!", "!!")
+                .replace("%", "!%")
+                .replace("_", "!_");
+        return "%" + escaped + "%";
     }
 
 
@@ -260,28 +289,11 @@ public class EmployeeService {
     // GET ALL ADMINS
     // =========================================================
 
-    public List<Employee> getAllAdmins(
-            String email) {
+    public PageResponse<Employee> getAllAdmins(
+            String search, Long from, Long to, int page, int size) {
 
-        Employee employee =
-                employeeRepository
-                        .findByEmail(email)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "User not found"
-                                )
-                        );
 
-        if (!"ADMIN".equalsIgnoreCase(
-                employee.getRole())) {
-
-            throw new AccessDeniedException(
-                    "Access denied. You are not Admin"
-            );
-        }
-
-        return employeeRepository
-                .findByRoleIgnoreCase("ADMIN");
+        return searchByRole("ADMIN", search, "", from, to, page, size);
     }
 
 

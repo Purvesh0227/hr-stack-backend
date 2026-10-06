@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.service;
 
+import com.hrstack.hr_stack.dto.PageResponse;
 import com.hrstack.hr_stack.entity.Attendance;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.SalarySlip;
@@ -12,9 +13,12 @@ import com.hrstack.hr_stack.repository.EmployeeRepository;
 import com.hrstack.hr_stack.repository.SalarySlipRepository;
 import com.hrstack.hr_stack.repository.SalaryStructureRepository;
 import com.hrstack.hr_stack.util.SalaryCalculationUtil;
+import com.hrstack.hr_stack.util.SearchUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
@@ -278,64 +282,90 @@ public class SalaryCalculationService {
         );
     }
 
-    public List<SalarySlip> viewSalarySlips(String email,String scope) {
+    private static final int MAX_PAGE_SIZE = 50;
+    private static final int MAX_SEARCH_LENGTH = 50;
+
+    public PageResponse<SalarySlip> viewSalarySlips(
+            String email,
+            String scope,
+            String search,
+            Integer month,
+            Integer year,
+            int page,
+            int size) {
+
         Employee employee =
                 employeeRepository.findByEmail(email)
                         .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Employee not found"
-                                )
-                        );
+                                new ResourceNotFoundException("Employee not found"));
 
-        List<SalarySlip> salarySlips;
-
-        if ("MY".equalsIgnoreCase(scope)) {
-            salarySlips =
-                    salarySlipRepository.findByEmpId(employee.getEmpId());
-        } else if ("ALL".equalsIgnoreCase(scope)) {
-            if (!"ADMIN".equalsIgnoreCase(employee.getRole())) {
-                throw new AccessDeniedException(
-                        "Access denied. You are not Admin"
-                );
-            }
-            salarySlips = salarySlipRepository.findAll();
-        } else {
-            throw new BadRequestException(
-                    "Invalid salary slip scope. Use MY or ALL"
-            );
+        int safeMonth = month == null ? 0 : month;
+        if (safeMonth < 0 || safeMonth > 12) {
+            throw new BadRequestException("Month must be between 1 and 12.");
         }
 
-        salarySlips.forEach(salarySlip -> {
-            if (salarySlip.getPdfObjectKey() != null) {
-                String signedUrl =
-                        salaryFileStorageService
-                                .getSalarySlipSignedUrlFromEitherBucket(
-                                        salarySlip.getPdfObjectKey()
-                                );
-                salarySlip.setPdfUrl(signedUrl);
+        int safeYear = year == null ? 0 : year;
+        if (safeYear != 0 && (safeYear < 2000 || safeYear > 2100)) {
+            throw new BadRequestException("Year must be between 2000 and 2100.");
+        }
+
+        // Sorting is inside the repository query
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.min(Math.max(size, 1), MAX_PAGE_SIZE)
+        );
+
+        Page<SalarySlip> result;
+
+        if ("MY".equalsIgnoreCase(scope)) {
+            // identity comes from the JWT, search is ignored
+            result = salarySlipRepository.findMine(
+                    employee.getEmpId(), safeMonth, safeYear, pageable);
+
+        } else if ("ALL".equalsIgnoreCase(scope)) {
+
+            if (!"ADMIN".equalsIgnoreCase(employee.getRole())) {
+                throw new AccessDeniedException("Access denied. You are not Admin");
             }
 
-            if (salarySlip.getGeneratedAt() != null) {
-                long replacementWindow =
-                        replacementWindowMonths
-                                * 30L
-                                * 24
-                                * 60
-                                * 60
-                                * 1000;
-
-                long expiryTime =
-                        salarySlip.getGeneratedAt()
-                                + replacementWindow;
-
-                salarySlip.setReplaceAllowed(
-                        System.currentTimeMillis() <= expiryTime
-                );
-            } else {
-                salarySlip.setReplaceAllowed(false);
+            String term = search == null ? "" : search.trim();
+            if (term.length() > MAX_SEARCH_LENGTH) {
+                term = term.substring(0, MAX_SEARCH_LENGTH);
             }
-        });
 
-        return salarySlips;
+            result = salarySlipRepository.searchAll(
+                    safeMonth, safeYear,
+                    SearchUtils.toLikePattern(term),
+                    pageable);
+
+        } else {
+            throw new BadRequestException("Invalid salary slip scope. Use MY or ALL");
+        }
+
+        // Signed link + replace flag only for the rows on this page
+        result.getContent().forEach(this::enrichSalarySlip);
+
+        return PageResponse.from(result);
+    }
+
+    private void enrichSalarySlip(SalarySlip salarySlip) {
+        if (salarySlip.getPdfObjectKey() != null) {
+            String signedUrl =
+                    salaryFileStorageService
+                            .getSalarySlipSignedUrlFromEitherBucket(
+                                    salarySlip.getPdfObjectKey());
+            salarySlip.setPdfUrl(signedUrl);
+        }
+
+        if (salarySlip.getGeneratedAt() != null) {
+            long replacementWindow =
+                    replacementWindowMonths * 30L * 24 * 60 * 60 * 1000;
+
+            long expiryTime = salarySlip.getGeneratedAt() + replacementWindow;
+
+            salarySlip.setReplaceAllowed(System.currentTimeMillis() <= expiryTime);
+        } else {
+            salarySlip.setReplaceAllowed(false);
+        }
     }
 }

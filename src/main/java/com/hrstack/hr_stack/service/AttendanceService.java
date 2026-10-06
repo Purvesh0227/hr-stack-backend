@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.service;
 
+import com.hrstack.hr_stack.dto.AttendanceResponse;
 import com.hrstack.hr_stack.dto.PageResponse;
 import com.hrstack.hr_stack.entity.Attendance;
 import com.hrstack.hr_stack.entity.Employee;
@@ -10,6 +11,7 @@ import com.hrstack.hr_stack.exception.ResourceNotFoundException;
 import com.hrstack.hr_stack.repository.AttendanceRepository;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import com.hrstack.hr_stack.repository.OtpRepository;
+import com.hrstack.hr_stack.util.SearchUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -110,8 +112,8 @@ public class AttendanceService {
         );
     }
 
-    // View attendance (server-side search + date range + pagination)
-    public PageResponse<Attendance> viewAttendance(
+// View attendance (server-side search by ID or name + date range + pagination)
+    public PageResponse<AttendanceResponse> viewAttendance(
             String email,
             String scope,
             String search,
@@ -124,50 +126,34 @@ public class AttendanceService {
                 employeeRepository
                         .findByEmail(email)
                         .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Employee not found"
-                                )
-                        );
+                                new ResourceNotFoundException("Employee not found"));
 
         // Optional date range. Missing values mean "no limit".
         long safeFrom = from == null ? 0L : Math.max(from, 0L);
         long safeTo = to == null ? Long.MAX_VALUE : to;
 
         if (safeFrom > safeTo) {
-            throw new BadRequestException(
-                    "'from' must not be after 'to'"
-            );
+            throw new BadRequestException("'from' must not be after 'to'");
         }
 
-        // Newest first. Always sort, otherwise page boundaries are not stable.
+        // Sorting is inside the repository query, so no Sort here
         Pageable pageable = PageRequest.of(
                 Math.max(page, 0),
-                Math.min(Math.max(size, 1), MAX_PAGE_SIZE),
-                Sort.by(Sort.Direction.DESC, "markedOn")
+                Math.min(Math.max(size, 1), MAX_PAGE_SIZE)
         );
 
         // MY attendance: identity comes from the JWT, search is ignored
         if ("MY".equalsIgnoreCase(scope)) {
-
             return PageResponse.from(
-                    attendanceRepository.findByEmpIdAndMarkedOnBetween(
-                            employee.getEmpId(),
-                            safeFrom,
-                            safeTo,
-                            pageable
-                    )
-            );
+                    attendanceRepository.findMine(
+                            employee.getEmpId(), safeFrom, safeTo, pageable));
         }
 
         // ALL attendance - ADMIN only
         if ("ALL".equalsIgnoreCase(scope)) {
 
-            if (!"ADMIN".equalsIgnoreCase(
-                    employee.getRole())) {
-
-                throw new AccessDeniedException(
-                        "Access denied. You are not Admin"
-                );
+            if (!"ADMIN".equalsIgnoreCase(employee.getRole())) {
+                throw new AccessDeniedException("Access denied. You are not Admin");
             }
 
             String term = search == null ? "" : search.trim();
@@ -177,18 +163,12 @@ public class AttendanceService {
             }
 
             return PageResponse.from(
-                    attendanceRepository
-                            .findByEmpIdContainingIgnoreCaseAndMarkedOnBetween(
-                                    term,
-                                    safeFrom,
-                                    safeTo,
-                                    pageable
-                            )
-            );
+                    attendanceRepository.searchAll(
+                            safeFrom, safeTo,
+                            SearchUtils.toLikePattern(term),
+                            pageable));
         }
 
-        throw new BadRequestException(
-                "Invalid attendance scope. Use MY or ALL"
-        );
+        throw new BadRequestException("Invalid attendance scope. Use MY or ALL");
     }
 }
