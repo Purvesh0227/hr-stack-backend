@@ -35,7 +35,7 @@ public class ShortLinkController {
 
         String shortUrl = shortLinkService.createShortLink(
                 targetUrl,
-                30 * 1000L
+                5 * 60 * 1000L
         );
 
         return ResponseEntity.ok(shortUrl);
