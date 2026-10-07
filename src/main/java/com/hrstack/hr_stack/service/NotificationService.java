@@ -164,4 +164,30 @@ public class NotificationService {
         emailService.sendHtmlEmail(
                 employee.getEmail(),"HR-Stack Password Reset OTP",html);
     }
+
+    @Async
+    public void sendEmailVerificationOtp(String email, String otp) {
+        String html = emailService
+                .loadTemplate("templates/email/email-verification-otp.html")
+                .replace("{{otp}}", otp);
+
+        emailService.sendHtmlEmail(
+                email, "HR-Stack Email Verification OTP", html);
+    }
+
+    @Async
+    public void sendEmailVerificationLink(
+            String email,
+            String verificationUrl) {
+
+        String html = emailService
+                .loadTemplate("templates/email/email-verification-link.html")
+                .replace("{{verificationUrl}}", HtmlUtils.htmlEscape(verificationUrl));
+
+        emailService.sendHtmlEmail(
+                email,
+                "HR-Stack - Verify Your Email",
+                html
+        );
+    }
 }

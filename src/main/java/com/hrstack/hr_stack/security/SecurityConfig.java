@@ -82,7 +82,12 @@ public class SecurityConfig {
                                 "/employee/login",
                                 "/employee/forgot-password",
                                 "/employee/verify-reset-otp",
-                                "/employee/reset-password"
+                                "/employee/reset-password",
+                                "/employee/email-verification/send",
+                                "/employee/email-verification/verify",
+                                "/s/**",
+                                "/employee/email-verification/send-link",
+                                "/employee/email-verification/confirm-link"
                         ).permitAll()
 
 

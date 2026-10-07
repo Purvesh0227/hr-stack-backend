@@ -55,6 +55,9 @@ public class EmployeeService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private EmailVerificationService emailVerificationService;
+
 
     // =========================================================
     // REGISTER EMPLOYEE
@@ -66,6 +69,10 @@ public class EmployeeService {
                     "Email already exists. Please use another email."
             );
         }
+
+        // Email must be verified
+        emailVerificationService.assertVerified(request.getEmail());
+
 
         Employee employee = new Employee();
         employee.setFirstName(request.getFirstName());
@@ -109,6 +116,8 @@ public class EmployeeService {
         employee.setUpdatedOn(currentTime);
 
         Employee savedEmployee = employeeRepository.save(employee);
+
+        emailVerificationService.consume(request.getEmail());
 
         List<Employee> admins =
                 employeeRepository.findByRoleIgnoreCase("ADMIN");
