@@ -79,6 +79,21 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
+    // Handles short-link errors
+    @ExceptionHandler(ShortLinkException.class)
+    public ResponseEntity<Map<String, String>> handleShortLinkException(
+            ShortLinkException ex) {
+
+        Map<String, String> error = new HashMap<>();
+
+        error.put("error", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
+    }
+
+
     // Handles authorization failures
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDenied(
