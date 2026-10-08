@@ -1,12 +1,14 @@
 package com.hrstack.hr_stack.controller;
 
 import com.hrstack.hr_stack.service.ShortLinkService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Short-Link")
 @RequestMapping("/s")
 public class ShortLinkController {
 
@@ -29,7 +31,7 @@ public class ShortLinkController {
                 .build();
     }
 
-    @PostMapping("/test")
+    @PostMapping("/shortlink")
     public ResponseEntity<String> createTestLink(
             @RequestParam String targetUrl) {
 

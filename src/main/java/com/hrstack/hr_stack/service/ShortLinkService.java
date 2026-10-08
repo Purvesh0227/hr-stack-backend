@@ -6,6 +6,7 @@ import com.hrstack.hr_stack.repository.ShortLinkRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.net.URI;
 
 import java.security.SecureRandom;
 import java.util.Optional;
@@ -38,6 +39,28 @@ public class ShortLinkService {
         if (targetUrl == null || targetUrl.isBlank()) {
             throw new ShortLinkException("Target URL cannot be empty.");
         }
+
+        try {
+            URI uri = URI.create(targetUrl.trim());
+
+            String scheme = uri.getScheme();
+
+            if (scheme == null
+                    || !(scheme.equalsIgnoreCase("http")
+                    || scheme.equalsIgnoreCase("https"))
+                    || uri.getHost() == null) {
+
+                throw new ShortLinkException(
+                        "Target URL must be a valid HTTP or HTTPS URL."
+                );
+            }
+
+        } catch (IllegalArgumentException e) {
+            throw new ShortLinkException(
+                    "Target URL must be a valid HTTP or HTTPS URL."
+            );
+        }
+
 
         if (expiryMillis <= 0) {
             throw new ShortLinkException("Expiry duration must be greater than zero.");
