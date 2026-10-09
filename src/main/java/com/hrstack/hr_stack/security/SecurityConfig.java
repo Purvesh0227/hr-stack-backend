@@ -87,7 +87,10 @@ public class SecurityConfig {
                                 "/employee/email-verification/verify",
                                 "/s/**",
                                 "/employee/email-verification/send-link",
-                                "/employee/email-verification/confirm-link"
+                                "/employee/email-verification/confirm-link",
+                                "/employee/login",
+                                "/employee/login/verify-otp",
+                                "/employee/login/resend-otp"
                         ).permitAll()
 
 
