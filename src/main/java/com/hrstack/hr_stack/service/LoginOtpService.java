@@ -58,6 +58,9 @@ public class LoginOtpService {
         return enabled;
     }
 
+    private static final org.slf4j.Logger log =
+            org.slf4j.LoggerFactory.getLogger(LoginOtpService.class);
+
     // step 1: password was correct -> send OTP
     public MfaChallengeResponse start(Employee employee) {
 
@@ -90,6 +93,8 @@ public class LoginOtpService {
         challenge = challengeRepository.save(challenge);
 
         notificationService.sendLoginOtp(employee, otp);
+
+        log.info("Login OTP sent employeeId={}", employee.getId());
 
         return toResponse(employee, challenge, now);
     }
@@ -134,6 +139,8 @@ public class LoginOtpService {
 
         challengeRepository.deleteById(challenge.getId());
 
+        log.info("Login OTP verified employeeId={}", employee.getId());
+
         return authService.issueLogin(employee);
     }
 
@@ -170,6 +177,8 @@ public class LoginOtpService {
         challengeRepository.save(challenge);
 
         notificationService.sendLoginOtp(employee, otp);
+
+        log.info("Login OTP sent employeeId={}", employee.getId());
 
         return toResponse(employee, challenge, now);
     }

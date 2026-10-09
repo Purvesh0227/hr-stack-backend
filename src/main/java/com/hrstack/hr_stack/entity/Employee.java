@@ -1,5 +1,6 @@
 package com.hrstack.hr_stack.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -94,6 +95,16 @@ public class Employee {
 
     @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
     private EmployeeDocument documents;
+
+
+    // Google account linking
+    @JsonIgnore
+    @Column(name = "google_sub", unique = true)
+    private String googleSub;
+
+    @JsonIgnore
+    @Column(name = "google_linked_on")
+    private Long googleLinkedOn;
 
     public Employee() {
     }
@@ -212,5 +223,22 @@ public class Employee {
 
     public void setUpdatedOn(Long updatedOn) {
         this.updatedOn = updatedOn;
+    }
+
+
+    public String getGoogleSub() {
+        return googleSub;
+    }
+
+    public void setGoogleSub(String googleSub) {
+        this.googleSub = googleSub;
+    }
+
+    public Long getGoogleLinkedOn() {
+        return googleLinkedOn;
+    }
+
+    public void setGoogleLinkedOn(Long googleLinkedOn) {
+        this.googleLinkedOn = googleLinkedOn;
     }
 }
