@@ -5,6 +5,7 @@ import com.hrstack.hr_stack.entity.Employee;
 //import com.hrstack.hr_stack.security.JwtService;
 import com.hrstack.hr_stack.service.EmployeeService;
 import jakarta.validation.Valid;
+import com.hrstack.hr_stack.exception.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.hrstack.hr_stack.service.AuthService;
 import com.hrstack.hr_stack.service.LoginOtpService;
+import com.hrstack.hr_stack.security.LoginRateLimiter;
 
 import java.util.Map;
 import java.util.List;
@@ -39,6 +41,9 @@ public class EmployeeController {
 
     @Autowired
     private LoginOtpService loginOtpService;
+
+    @Autowired
+    private LoginRateLimiter loginRateLimiter;
 
 
     // =========================================================
@@ -152,17 +157,26 @@ public class EmployeeController {
     public ResponseEntity<?> login(
             @RequestBody LoginRequest request) {
 
-        Employee employee =
-                employeeService.login(
-                        request.getEmail(),
-                        request.getPassword()
-                );
+        String key = request.getEmail() == null
+                ? "" : request.getEmail().trim().toLowerCase();
 
-        //2fa on
+        loginRateLimiter.checkAllowed(key);
+
+        Employee employee;
+        try {
+            employee = employeeService.login(
+                    request.getEmail(),
+                    request.getPassword()
+            );
+        } catch (BadRequestException e) {
+            loginRateLimiter.recordFailure(key);
+            throw e;
+        }
+        loginRateLimiter.reset(key);
+
         if (loginOtpService.isEnabled()) {
             return ResponseEntity.ok(loginOtpService.start(employee));
         }
-        //2fa off
         return ResponseEntity.ok(authService.issueLogin(employee));
     }
 

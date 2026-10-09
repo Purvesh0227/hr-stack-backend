@@ -1,17 +1,24 @@
 package com.hrstack.hr_stack.repository;
 
 import com.hrstack.hr_stack.entity.Employee;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+
+
+
 
 public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
 
@@ -51,5 +58,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
             @Param("to") long to,
             @Param("pattern") String pattern,
             Pageable pageable);
+
+
+    Optional<Employee> findByGoogleSub(String googleSub);
+
+    // Links Google only if not linked yet. Direct update = no validation or other fields touched.
+    @Modifying
+    @Transactional
+    @Query("update Employee e set e.googleSub = :sub, e.googleLinkedOn = :linkedOn " +
+            "where e.id = :id and e.googleSub is null")
+    int linkGoogle(@Param("id") UUID id,
+                   @Param("sub") String sub,
+                   @Param("linkedOn") Long linkedOn);
 
 }

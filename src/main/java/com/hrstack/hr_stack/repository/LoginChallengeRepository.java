@@ -34,4 +34,10 @@ public interface LoginChallengeRepository
     @Query("update LoginChallenge c set c.used = true " +
             "where c.id = :id and c.used = false")
     int markUsed(@Param("id") UUID id);
+
+    @Modifying
+    @Transactional
+    @Query("delete from LoginChallenge c where c.createdOn < :before")
+    int deleteOlderThan(@Param("before") long before);
+
 }
