@@ -16,6 +16,7 @@ public class NotificationService {
     private final EmailService emailService;
     private final EmployeeRepository employeeRepository;
 
+
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
@@ -76,10 +77,7 @@ public class NotificationService {
     }
 
 
-    /**
-     * Builds and sends the attendance OTP email
-     * to an individual employee.
-     */
+    @Async
     private void sendAttendanceOtp(
             Employee employee,
             String otp) {
@@ -115,7 +113,7 @@ public class NotificationService {
 
 
     // Document verification email
-
+    @Async
     public void sendDocumentVerificationRequest(
             Employee employee) {
 
@@ -154,6 +152,8 @@ public class NotificationService {
         );
     }
 
+
+
     @Async
     public void sendPasswordResetOtp(Employee employee, String otp) {
         String html = emailService
@@ -164,6 +164,19 @@ public class NotificationService {
         emailService.sendHtmlEmail(
                 employee.getEmail(),"HR-Stack Password Reset OTP",html);
     }
+
+
+    @Async
+    public void sendLoginOtp(Employee employee, String otp){
+        String html = emailService
+                .loadTemplate("templates/email/login-otp.html")
+                .replace("{{name}}", HtmlUtils.htmlEscape(employee.getFirstName()))
+                .replace("{{otp}}", otp);
+
+        emailService.sendHtmlEmail(
+                employee.getEmail(), "HR-Stack Login OTP", html);
+    }
+
 
     @Async
     public void sendEmailVerificationOtp(String email, String otp) {

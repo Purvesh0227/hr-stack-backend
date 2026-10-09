@@ -2,7 +2,7 @@ package com.hrstack.hr_stack.controller;
 
 import com.hrstack.hr_stack.dto.*;
 import com.hrstack.hr_stack.entity.Employee;
-import com.hrstack.hr_stack.security.JwtService;
+//import com.hrstack.hr_stack.security.JwtService;
 import com.hrstack.hr_stack.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -10,6 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.hrstack.hr_stack.service.AuthService;
+import com.hrstack.hr_stack.service.LoginOtpService;
 
 import java.util.Map;
 import java.util.List;
@@ -33,7 +35,10 @@ public class EmployeeController {
     private EmployeeService employeeService;
 
     @Autowired
-    private JwtService jwtService;
+    private AuthService authService;
+
+    @Autowired
+    private LoginOtpService loginOtpService;
 
 
     // =========================================================
@@ -144,7 +149,7 @@ public class EmployeeController {
     // =========================================================
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
+    public ResponseEntity<?> login(
             @RequestBody LoginRequest request) {
 
         Employee employee =
@@ -153,18 +158,13 @@ public class EmployeeController {
                         request.getPassword()
                 );
 
-        String token =
-                jwtService.generateToken(
-                        employee.getEmail(),
-                        employee.getRole()
-                );
-
-        LoginResponse response =
-                new LoginResponse(token, employee);
-
-        return ResponseEntity.ok(response);
+        //2fa on
+        if (loginOtpService.isEnabled()) {
+            return ResponseEntity.ok(loginOtpService.start(employee));
+        }
+        //2fa off
+        return ResponseEntity.ok(authService.issueLogin(employee));
     }
-
 
     // =========================================================
     // GET EMPLOYEE BY EMAIL

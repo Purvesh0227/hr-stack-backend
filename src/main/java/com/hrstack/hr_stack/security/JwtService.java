@@ -53,6 +53,31 @@ public class JwtService {
         return claims;
     }
 
+//    login 2fa email otp this is not login token and it says person has pass the pasword step
+
+    private static final String MFA = "LOGIN_MFA";
+    private static final long MFA_TTL_MS = 15 * 60 * 1000L;
+
+    public String generateMfaToken(String email, UUID challengeId) {
+        return Jwts.builder()
+                .subject(email)
+                .claim(PURPOSE, MFA)
+                .id(challengeId.toString())           // links token to login_challenge row
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + MFA_TTL_MS))
+                .signWith(secretKey)
+                .compact();
+    }
+
+    public UUID parseMfaToken(String token) {
+        Claims claims = getClaims(token);
+        if (!MFA.equals(claims.get(PURPOSE, String.class))) {
+            throw new JwtException("Wrong token purpose");
+        }
+        return UUID.fromString(claims.getId());
+    }
+
+//
     public String generateToken(String email, String role) {
         return Jwts.builder()
                 .subject(email)
