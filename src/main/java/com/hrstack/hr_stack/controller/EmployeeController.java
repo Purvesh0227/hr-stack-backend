@@ -15,7 +15,16 @@ import com.hrstack.hr_stack.service.AuthService;
 import com.hrstack.hr_stack.service.LoginOtpService;
 import com.hrstack.hr_stack.security.LoginRateLimiter;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Map;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -174,7 +183,7 @@ public class EmployeeController {
         }
         loginRateLimiter.reset(key);
 
-        if (loginOtpService.isEnabled()) {
+        if (loginOtpService.isEnabled() && employee.isTwoFactorEnabled()) {
             return ResponseEntity.ok(loginOtpService.start(employee));
         }
         return ResponseEntity.ok(authService.issueLogin(employee));
@@ -192,8 +201,6 @@ public class EmployeeController {
 
         return employeeService.getEmployeeByEmail(email);
     }
-
-
     // =========================================================
     // GET EMPLOYEE BY UUID
     // =========================================================
@@ -231,7 +238,6 @@ public class EmployeeController {
 
         return ResponseEntity.ok(updatedEmployee);
     }
-
 
     // =========================================================
     // UPDATE PROFILE PHOTO
@@ -331,4 +337,63 @@ public class EmployeeController {
 
         return ResponseEntity.ok(employee);
     }
+
+
+    @GetMapping("/two-factor")
+    public ResponseEntity<?> getTwoFactorPreference() {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getName() == null
+                || "anonymousUser".equals(authentication.getName())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Authentication required"));
+        }
+
+        boolean enabled = employeeService.getTwoFactorPreference(
+                authentication.getName()
+        );
+
+        return ResponseEntity.ok(Map.of("twoFactorEnabled", enabled));
+    }
+
+    @PutMapping("/two-factor")
+    public ResponseEntity<?> updateTwoFactorPreference(
+            @RequestBody Map<String, Boolean> request
+    ) {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getName() == null
+                || "anonymousUser".equals(authentication.getName())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Authentication required"));
+        }
+
+        Boolean enabled = request.get("enabled");
+
+        if (enabled == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "The enabled field is required"));
+        }
+
+        boolean updated = employeeService.updateTwoFactorPreference(
+                authentication.getName(),
+                enabled
+        );
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "twoFactorEnabled", updated,
+                        "message", "Two-factor authentication preference updated"
+                )
+        );
+    }
+
+
+
 }

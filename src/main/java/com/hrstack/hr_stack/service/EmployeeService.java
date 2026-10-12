@@ -82,6 +82,7 @@ public class EmployeeService {
         employee.setEmpId(generateEmpId());
         employee.setRole("EMPLOYEE");
         employee.setPassword(encoder.encode(request.getPassword()));
+        employee.setTwoFactorEnabled(request.isTwoFactorEnabled());
 
         if (request.getProfilePhoto() != null
                 && !request.getProfilePhoto().isEmpty()) {
@@ -744,7 +745,8 @@ public class EmployeeService {
                                            String firstName,
                                            String lastName,
                                            String mobile,
-                                           String password) {
+                                           String password,
+                                           boolean twoFactorEnabled) {
 
         if (employeeRepository.existsByEmailIgnoreCase(email)
                 || employeeRepository.findByGoogleSub(googleSub).isPresent()) {
@@ -767,6 +769,7 @@ public class EmployeeService {
         employee.setEmpId(generateEmpId());
         employee.setRole("EMPLOYEE");
         employee.setPassword(encoder.encode(password));
+        employee.setTwoFactorEnabled(twoFactorEnabled);
         employee.setGoogleSub(googleSub);
         employee.setGoogleLinkedOn(now);
         employee.setCreatedOn(now);
@@ -786,4 +789,21 @@ public class EmployeeService {
 
         return saved;
     }
+
+
+    public boolean getTwoFactorPreference(String email) {
+        Employee employee = getEmployeeByEmail(email);
+        return employee.isTwoFactorEnabled();
+    }
+
+    public boolean updateTwoFactorPreference(
+            String email,
+            boolean enabled
+    ) {
+        Employee employee = getEmployeeByEmail(email);
+        employee.setTwoFactorEnabled(enabled);
+        Employee savedEmployee = employeeRepository.save(employee);
+        return savedEmployee.isTwoFactorEnabled();
+    }
+
 }

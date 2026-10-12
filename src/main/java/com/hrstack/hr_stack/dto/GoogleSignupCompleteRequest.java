@@ -1,3 +1,4 @@
+
 package com.hrstack.hr_stack.dto;
 
 import jakarta.validation.constraints.NotBlank;
@@ -23,5 +24,10 @@ public record GoogleSignupCompleteRequest(
         @NotBlank(message = "Password is required")
         @Pattern(
                 regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!.*_-]).{8,}$",
-                message = "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a digit, and a special character")
-        String password) {}
+                message = "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a digit, and a special character"
+        )
+        String password,
+
+        boolean twoFactorEnabled
+
+) {}
