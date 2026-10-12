@@ -71,4 +71,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
                    @Param("sub") String sub,
                    @Param("linkedOn") Long linkedOn);
 
+    boolean existsByMobile(String mobile);
+
 }
