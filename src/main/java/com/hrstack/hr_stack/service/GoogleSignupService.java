@@ -80,7 +80,8 @@ public class GoogleSignupService {
                 request.firstName(),
                 request.lastName(),
                 request.mobile(),
-                request.password());
+                request.password(),
+                request.twoFactorEnabled());
 
         return authService.issueLogin(employee);
     }

@@ -106,6 +106,9 @@ public class Employee {
     @Column(name = "google_linked_on")
     private Long googleLinkedOn;
 
+    @Column(name = "two_factor_enabled", nullable = false)
+    private boolean twoFactorEnabled = true;
+
     public Employee() {
     }
 
@@ -240,5 +243,13 @@ public class Employee {
 
     public void setGoogleLinkedOn(Long googleLinkedOn) {
         this.googleLinkedOn = googleLinkedOn;
+    }
+
+    public boolean isTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
     }
 }

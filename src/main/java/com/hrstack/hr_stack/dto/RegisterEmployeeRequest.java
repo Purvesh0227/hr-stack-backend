@@ -34,6 +34,9 @@ public class RegisterEmployeeRequest {
     )
     private String mobile;
 
+
+    private boolean twoFactorEnabled = false;
+
     @NotBlank(message = "Password is required")
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!.*_-]).{8,}$",
@@ -89,5 +92,13 @@ public class RegisterEmployeeRequest {
 
     public void setProfilePhoto(MultipartFile profilePhoto) {
         this.profilePhoto = profilePhoto;
+    }
+
+    public boolean isTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
     }
 }
