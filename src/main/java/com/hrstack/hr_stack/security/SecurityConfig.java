@@ -91,7 +91,9 @@ public class SecurityConfig {
                                 "/employee/login",
                                 "/employee/login/verify-otp",
                                 "/employee/login/resend-otp",
-                                "/employee/google-login"
+                                "/employee/google-login",
+                                "/employee/google-signup/start",
+                                "/employee/google-signup/complete"
                         ).permitAll()
 
 

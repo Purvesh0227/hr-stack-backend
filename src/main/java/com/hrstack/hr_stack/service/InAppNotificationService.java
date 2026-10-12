@@ -66,13 +66,7 @@ public class InAppNotificationService {
         Notification savedNotification =
                 notificationRepository.save(notification);
 
-        /*
-         * Send Web Push notification to all registered
-         * browser/device subscriptions of this employee.
-         *
-         * Push failure should not prevent the in-app
-         * notification from being saved in the database.
-         */
+
         sendWebPushNotifications(
                 employee,
                 eventType,

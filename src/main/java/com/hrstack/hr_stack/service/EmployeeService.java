@@ -735,4 +735,55 @@ public class EmployeeService {
             );
         }
     }
+
+//    register employee using google sign up
+
+
+    public Employee registerGoogleEmployee(String email,
+                                           String googleSub,
+                                           String firstName,
+                                           String lastName,
+                                           String mobile,
+                                           String password) {
+
+        if (employeeRepository.existsByEmailIgnoreCase(email)
+                || employeeRepository.findByGoogleSub(googleSub).isPresent()) {
+            throw new BadRequestException(
+                    "Account already exists. Please sign in.");
+        }
+
+        if (employeeRepository.existsByMobile(mobile)) {
+            throw new BadRequestException(
+                    "Mobile number already exists. Please use another number.");
+        }
+
+        long now = System.currentTimeMillis();
+
+        Employee employee = new Employee();
+        employee.setFirstName(firstName);
+        employee.setLastName(lastName);
+        employee.setEmail(email);
+        employee.setMobile(mobile);
+        employee.setEmpId(generateEmpId());
+        employee.setRole("EMPLOYEE");
+        employee.setPassword(encoder.encode(password));
+        employee.setGoogleSub(googleSub);
+        employee.setGoogleLinkedOn(now);
+        employee.setCreatedOn(now);
+        employee.setUpdatedOn(now);
+
+        Employee saved = employeeRepository.save(employee);
+
+        // same admin alert as normal registration
+        List<Employee> admins = employeeRepository.findByRoleIgnoreCase("ADMIN");
+        for (Employee admin : admins) {
+            inAppNotificationService.createNotification(
+                    admin.getId(),
+                    "NEW_EMPLOYEE_REGISTERED",
+                    "A new employee has registered. Action required."
+            );
+        }
+
+        return saved;
+    }
 }

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class GoogleTokenVerifier {
 
-    public record GoogleUser(String sub, String email, String name) {}
+    public record GoogleUser(String sub, String email, String name, String givenName, String familyName) {}
 
     private static final String ISSUER_1 = "https://accounts.google.com";
     private static final String ISSUER_2 = "accounts.google.com";
@@ -74,7 +74,9 @@ public class GoogleTokenVerifier {
             return new GoogleUser(
                     claims.getSubject(),
                     email.trim(),
-                    claims.getStringClaimValue("name"));
+                    claims.getStringClaimValue("name"),
+                    claims.getStringClaimValue("given_name"),
+                    claims.getStringClaimValue("family_name"));
 
         } catch (InvalidJwtException | MalformedClaimException e) {
             throw new BadRequestException(

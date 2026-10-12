@@ -114,4 +114,38 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+//    ------------google sign up --------------
+
+private static final String GOOGLE_SIGNUP = "GOOGLE_SIGNUP";
+    private static final long GOOGLE_SIGNUP_TTL_MS = 15 * 60 * 1000L;
+
+    public record GoogleSignupClaims(String sub, String email,
+                                     String firstName, String lastName) {}
+
+    public String generateGoogleSignupToken(String sub, String email,
+                                            String firstName, String lastName) {
+        return Jwts.builder()
+                .subject(email)
+                .claim(PURPOSE, GOOGLE_SIGNUP)
+                .claim("gsub", sub)
+                .claim("fn", firstName)
+                .claim("ln", lastName)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + GOOGLE_SIGNUP_TTL_MS))
+                .signWith(secretKey)
+                .compact();
+    }
+
+    public GoogleSignupClaims parseGoogleSignupToken(String token) {
+        Claims claims = getClaims(token);
+        if (!GOOGLE_SIGNUP.equals(claims.get(PURPOSE, String.class))) {
+            throw new JwtException("Wrong token purpose");
+        }
+        return new GoogleSignupClaims(
+                claims.get("gsub", String.class),
+                claims.getSubject(),
+                claims.get("fn", String.class),
+                claims.get("ln", String.class));
+    }
 }
