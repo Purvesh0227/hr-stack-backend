@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends RuntimeException {
 
     // Handles @Valid validation failures
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -106,5 +106,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(error);
+    }
+
+    @ExceptionHandler(QrAttendanceException.class)
+    public ResponseEntity<Map<String, String>> handleQrAttendance(
+            QrAttendanceException ex) {
+
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(Map.of(
+                        "error", ex.getMessage(),
+                        "code", ex.getCode()
+                ));
     }
 }
