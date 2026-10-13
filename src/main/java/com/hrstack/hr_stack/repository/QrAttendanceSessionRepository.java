@@ -14,7 +14,7 @@ public interface QrAttendanceSessionRepository
 
     Optional<QrAttendanceSession> findByTokenHash(String tokenHash);
 
-//creating new one kills old one
+    // One active QR per department: creating a new one kills the old one
     @Modifying(clearAutomatically = true)
     @Query("""
             UPDATE QrAttendanceSession s
@@ -23,4 +23,14 @@ public interface QrAttendanceSessionRepository
                AND s.status = 'ACTIVE'
             """)
     int revokeActiveByDepartment(@Param("department") String department);
+
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+            UPDATE QrAttendanceSession s
+               SET s.emailedOn = :now
+             WHERE s.uuid = :id
+               AND s.emailedOn IS NULL
+            """)
+    int markEmailed(@Param("id") UUID id, @Param("now") long now);
 }

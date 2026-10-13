@@ -93,7 +93,8 @@ public class SecurityConfig {
                                 "/employee/login/resend-otp",
                                 "/employee/google-login",
                                 "/employee/google-signup/start",
-                                "/employee/google-signup/complete"
+                                "/employee/google-signup/complete",
+                                "/public/attendance-qr/**"
                         ).permitAll()
 
 

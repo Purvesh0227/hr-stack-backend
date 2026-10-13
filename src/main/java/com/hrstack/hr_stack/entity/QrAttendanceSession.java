@@ -15,6 +15,7 @@ public class QrAttendanceSession {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID uuid;
 
+    // SHA-256 hex of the QR token. Raw token is never stored.
     @Column(name = "token_hash", nullable = false, length = 64, unique = true)
     private String tokenHash;
 
@@ -34,6 +35,10 @@ public class QrAttendanceSession {
 
     @Column(nullable = false, length = 20)
     private String status = STATUS_ACTIVE;
+
+    // Set once when the QR is emailed to employees. NULL = not emailed yet.
+    @Column(name = "emailed_on")
+    private Long emailedOn;
 
     public QrAttendanceSession() {
     }
@@ -58,4 +63,7 @@ public class QrAttendanceSession {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public Long getEmailedOn() { return emailedOn; }
+    public void setEmailedOn(Long emailedOn) { this.emailedOn = emailedOn; }
 }
