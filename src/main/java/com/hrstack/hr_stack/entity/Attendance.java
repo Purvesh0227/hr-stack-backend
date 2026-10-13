@@ -2,6 +2,7 @@ package com.hrstack.hr_stack.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -21,6 +22,15 @@ public class Attendance {
 
     @Column(nullable = false)
     private String status;
+
+    @Column(nullable = false, length = 10)
+    private String method = "OTP";
+
+    @Column(name = "session_id")
+    private UUID sessionId;
+
+    @Column(name = "attendance_date")
+    private LocalDate attendanceDate;
 
     public Attendance() {
     }
@@ -56,4 +66,13 @@ public class Attendance {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public String getMethod() { return method; }
+    public void setMethod(String method) { this.method = method; }
+
+    public UUID getSessionId() { return sessionId; }
+    public void setSessionId(UUID sessionId) { this.sessionId = sessionId; }
+
+    public LocalDate getAttendanceDate() { return attendanceDate; }
+    public void setAttendanceDate(LocalDate attendanceDate) { this.attendanceDate = attendanceDate; }
 }

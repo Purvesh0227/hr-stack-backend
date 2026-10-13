@@ -89,4 +89,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
             @Param("from") long from,
             @Param("to") long to,
             Pageable pageable);
+
+    long countBySessionId(UUID sessionId);
 }

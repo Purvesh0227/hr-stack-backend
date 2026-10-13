@@ -102,13 +102,16 @@ public class SecurityConfig {
                                 "/employee/createAdmin",
                                 "/employee/createotp",
                                 "/employee/*/request-documents",
-                                "/employee/*/activate"
+                                "/employee/*/activate",
+                                "/employee/attendance/qr/sessions",
+                                "/employee/attendance/qr/sessions/**"
                         ).hasRole("ADMIN")
 
                         // Admin + Employee
                         .requestMatchers(
                                 "/employee/attendance",
-                                "/employee/attendance/view"
+                                "/employee/attendance/view",
+                                "/employee/attendance/qr/mark"
                         ).hasAnyRole("ADMIN", "EMPLOYEE")
 
                         // All remaining APIs
