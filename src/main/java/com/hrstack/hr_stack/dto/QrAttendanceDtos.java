@@ -27,7 +27,7 @@ public final class QrAttendanceDtos {
     public record QrSessionStatusResponse(
             UUID sessionId,
             String department,
-            String status,
+            String status,        // ACTIVE | EXPIRED | REVOKED
             long expiresOn,
             long serverNow,
             long scanCount) {
@@ -37,5 +37,13 @@ public final class QrAttendanceDtos {
             long markedOn,
             String status,
             String method) {
+    }
+
+    public record EmailQrRequest(String token) {
+    }
+
+    public record QrEmailResponse(
+            int recipients,
+            String message) {
     }
 }

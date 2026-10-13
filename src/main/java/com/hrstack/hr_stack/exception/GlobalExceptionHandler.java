@@ -112,11 +112,13 @@ public class GlobalExceptionHandler extends RuntimeException {
     public ResponseEntity<Map<String, String>> handleQrAttendance(
             QrAttendanceException ex) {
 
+        Map<String, String> error = new HashMap<>();
+
+        error.put("error", ex.getMessage());
+        error.put("code", ex.getCode());
+
         return ResponseEntity
                 .status(ex.getStatus())
-                .body(Map.of(
-                        "error", ex.getMessage(),
-                        "code", ex.getCode()
-                ));
+                .body(error);
     }
 }

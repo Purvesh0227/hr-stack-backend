@@ -10,7 +10,13 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
+/*
+ * FULL REPLACEMENT of the existing EmailService.
+ * Existing 3-argument sendHtmlEmail behaves exactly as before.
+ * NEW: 5-argument overload that adds one attachment (Brevo "attachment" array).
+ */
 @Service
 public class EmailService {
 
@@ -32,50 +38,67 @@ public class EmailService {
         this.httpClient = HttpClient.newHttpClient();
     }
 
+    // Unchanged behavior
     public void sendHtmlEmail(
             String to,
             String subject,
             String htmlBody) {
 
+        send(to, subject, htmlBody, null, null);
+    }
+
+    // NEW: same email plus one attachment (e.g. QR code PNG)
+    public void sendHtmlEmail(
+            String to,
+            String subject,
+            String htmlBody,
+            String attachmentName,
+            byte[] attachmentBytes) {
+
+        send(to, subject, htmlBody, attachmentName, attachmentBytes);
+    }
+
+    private void send(
+            String to,
+            String subject,
+            String htmlBody,
+            String attachmentName,
+            byte[] attachmentBytes) {
+
         System.out.println(
                 "EMAIL: Preparing Brevo email to " + to
         );
 
-        String jsonBody = """
-                {
-                  "sender": {
-                    "name": "%s",
-                    "email": "%s"
-                  },
-                  "to": [
-                    {
-                      "email": "%s"
-                    }
-                  ],
-                  "subject": "%s",
-                  "htmlContent": %s
-                }
-                """.formatted(
-                escapeJson(fromName),
-                escapeJson(fromEmail),
-                escapeJson(to),
-                escapeJson(subject),
-                toJsonString(htmlBody)
-        );
+        StringBuilder json = new StringBuilder();
+
+        json.append("{")
+                .append("\"sender\":{\"name\":\"").append(escapeJson(fromName))
+                .append("\",\"email\":\"").append(escapeJson(fromEmail)).append("\"},")
+                .append("\"to\":[{\"email\":\"").append(escapeJson(to)).append("\"}],")
+                .append("\"subject\":\"").append(escapeJson(subject)).append("\",")
+                .append("\"htmlContent\":").append(toJsonString(htmlBody));
+
+        if (attachmentName != null && attachmentBytes != null) {
+            json.append(",\"attachment\":[{\"name\":\"")
+                    .append(escapeJson(attachmentName))
+                    .append("\",\"content\":\"")
+                    .append(Base64.getEncoder().encodeToString(attachmentBytes))
+                    .append("\"}]");
+        }
+
+        json.append("}");
 
         try {
+
             HttpRequest request =
                     HttpRequest.newBuilder()
                             .uri(URI.create(BREVO_API_URL))
                             .header("accept", "application/json")
                             .header("api-key", apiKey)
-                            .header(
-                                    "content-type",
-                                    "application/json"
-                            )
+                            .header("content-type", "application/json")
                             .POST(
                                     HttpRequest.BodyPublishers.ofString(
-                                            jsonBody,
+                                            json.toString(),
                                             StandardCharsets.UTF_8
                                     )
                             )
@@ -94,13 +117,11 @@ public class EmailService {
             int statusCode = response.statusCode();
 
             System.out.println(
-                    "EMAIL: Brevo response status = "
-                            + statusCode
+                    "EMAIL: Brevo response status = " + statusCode
             );
 
             System.out.println(
-                    "EMAIL: Brevo response = "
-                            + response.body()
+                    "EMAIL: Brevo response = " + response.body()
             );
 
             if (statusCode < 200 || statusCode >= 300) {
@@ -113,21 +134,16 @@ public class EmailService {
             }
 
             System.out.println(
-                    "EMAIL: Brevo email accepted successfully for "
-                            + to
+                    "EMAIL: Brevo email accepted successfully for " + to
             );
 
         } catch (IOException e) {
-
             throw new RuntimeException(
                     "Failed to communicate with Brevo",
                     e
             );
-
         } catch (InterruptedException e) {
-
             Thread.currentThread().interrupt();
-
             throw new RuntimeException(
                     "Brevo email request was interrupted",
                     e
@@ -163,6 +179,7 @@ public class EmailService {
     public String loadTemplate(String templatePath) {
 
         try {
+
             ClassPathResource resource =
                     new ClassPathResource(templatePath);
 
@@ -174,8 +191,7 @@ public class EmailService {
         } catch (IOException e) {
 
             throw new RuntimeException(
-                    "Failed to load email template "
-                            + templatePath,
+                    "Failed to load email template " + templatePath,
                     e
             );
         }
