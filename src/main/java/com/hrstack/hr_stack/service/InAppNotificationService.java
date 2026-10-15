@@ -11,6 +11,7 @@ import com.hrstack.hr_stack.repository.NotificationRepository;
 import com.hrstack.hr_stack.repository.NotificationSubscriptionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,9 @@ public class InAppNotificationService {
     private final EmployeeRepository employeeRepository;
     private final WebPushService webPushService;
     private final ObjectMapper objectMapper;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     public InAppNotificationService(
             NotificationRepository notificationRepository,
@@ -105,6 +109,11 @@ public class InAppNotificationService {
                     "message",
                     message
             );
+//notifications
+            payloadData.put(
+                    "url",
+                    buildClickUrl(eventType)
+            );
 
             payload =
                     objectMapper.writeValueAsString(
@@ -145,6 +154,26 @@ public class InAppNotificationService {
                 );
             }
         }
+    }
+
+
+    private String buildClickUrl(String eventType) {
+
+        String base = frontendUrl.endsWith("/")
+                ? frontendUrl
+                : frontendUrl + "/";
+
+        String path = switch (eventType == null ? "" : eventType) {
+            case "NEW_EMPLOYEE_REGISTERED",
+                 "DOCUMENTS_UPLOADED" -> "employees";
+            case "ATTENDANCE" -> "attendance";
+            case "SALARY_SLIP_GENERATED",
+                 "SALARY_SLIP_REPLACED" -> "finance";
+            case "ANNOUNCEMENT" -> "announcements";
+            default -> "";
+        };
+
+        return base + path;
     }
 
     @Transactional(readOnly = true)
