@@ -8,6 +8,8 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import nl.martijndwars.webpush.Encoding;
+
 import java.security.Security;
 
 @Service
@@ -56,7 +58,7 @@ public class WebPushService {
                         "mailto:purvesh0227@gmail.com"
                 );
 
-        HttpResponse response = pushService.send(notification);
+        HttpResponse response = pushService.send(notification, Encoding.AES128GCM);
 
         int status = response.getStatusLine().getStatusCode();
 
