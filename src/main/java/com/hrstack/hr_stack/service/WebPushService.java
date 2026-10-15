@@ -66,7 +66,13 @@ public class WebPushService {
         );
 
         if (status < 200 || status >= 300) {
-            throw new RuntimeException("Web Push rejected, HTTP " + status);
+            String body = "";
+            if (response.getEntity() != null) {
+                body = org.apache.http.util.EntityUtils
+                        .toString(response.getEntity());
+            }
+            throw new RuntimeException(
+                    "Web Push rejected, HTTP " + status + " " + body);
         }
     }
 }
