@@ -2,6 +2,8 @@ package com.hrstack.hr_stack.service;
 
 import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushService;
+import nl.martijndwars.webpush.Urgency;
+import org.apache.http.HttpResponse;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -38,12 +40,14 @@ public class WebPushService {
     ) throws Exception {
 
         Notification notification =
-                new Notification(
-                        endpoint,
-                        p256dh,
-                        auth,
-                        payload
-                );
+                Notification.builder()
+                        .endpoint(endpoint)
+                        .userPublicKey(p256dh)
+                        .userAuth(auth)
+                        .payload(payload)
+                        .ttl(86400)
+                        .urgency(Urgency.HIGH)
+                        .build();
 
         PushService pushService =
                 new PushService(
@@ -52,6 +56,17 @@ public class WebPushService {
                         "mailto:purvesh0227@gmail.com"
                 );
 
-        pushService.send(notification);
+        HttpResponse response = pushService.send(notification);
+
+        int status = response.getStatusLine().getStatusCode();
+
+        System.out.println(
+                "WEB PUSH status " + status + " -> "
+                        + endpoint.substring(0, Math.min(45, endpoint.length()))
+        );
+
+        if (status < 200 || status >= 300) {
+            throw new RuntimeException("Web Push rejected, HTTP " + status);
+        }
     }
 }
