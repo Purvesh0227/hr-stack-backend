@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.hrstack.hr_stack.service.InAppNotificationService;
 
 import java.util.*;
 
@@ -40,6 +41,8 @@ public class AnnouncementService {
     private final AnnouncementRepository announcementRepository;
     private final EmployeeRepository employeeRepository;
     private final MinioStorageService storage;
+    private final InAppNotificationService inAppNotificationService;
+
 
     @Value("${s3.temp-bucket}")
     private String tempBucket;
@@ -50,11 +53,13 @@ public class AnnouncementService {
     public AnnouncementService(
             AnnouncementRepository announcementRepository,
             EmployeeRepository employeeRepository,
-            MinioStorageService storage) {
+            MinioStorageService storage,
+            InAppNotificationService inAppNotificationService) {
 
         this.announcementRepository = announcementRepository;
         this.employeeRepository = employeeRepository;
         this.storage = storage;
+        this.inAppNotificationService = inAppNotificationService;
     }
 
     // ---------- read ----------
@@ -131,7 +136,29 @@ public class AnnouncementService {
         checkFileCount(0, newFiles.size());
         attachFiles(announcement, newFiles);
 
-        return toResponse(announcementRepository.save(announcement));
+        Announcement saved = announcementRepository.save(announcement);
+
+        String title = request.title().trim();
+
+        for (Employee employee :
+                employeeRepository.findByStatusIgnoreCase("ACTIVE")) {
+
+            if (employee.getId().equals(admin.getId())) {
+                continue;
+            }
+
+            try {
+                inAppNotificationService.createNotification(
+                        employee.getId(),
+                        "ANNOUNCEMENT",
+                        "New announcement: " + title
+                );
+            } catch (Exception ignored) {
+                // notification failure must not block announcement
+            }
+        }
+
+        return toResponse(saved);
     }
 
     @Transactional
