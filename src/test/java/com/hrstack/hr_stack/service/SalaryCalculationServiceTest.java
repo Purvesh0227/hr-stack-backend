@@ -228,4 +228,28 @@ class SalaryCalculationServiceTest {
         assertMoney("5869.56", result.getDeduction());     // absent deduction only
         assertMoney("39130.44", result.getNetSalary());
     }
+
+    @Test
+    void generateSalary_whenAbsentAllMonth_netSalaryIsNotNegative() {
+        when(salarySlipRepository.findByEmpIdAndMonthAndYear(EMP_ID, MONTH, YEAR))
+                .thenReturn(Optional.empty());
+        when(salaryStructureRepository.findByEmpId(EMP_ID))
+                .thenReturn(Optional.of(structure(true)));
+        when(attendanceRepository.findByEmpId(EMP_ID))
+                .thenReturn(List.of());                      // no attendance at all
+        when(employeeRepository.findByEmpId(EMP_ID))
+                .thenReturn(Optional.of(employee()));
+        when(pdfGenerationService.generatePdf(eq("salary-slip"), anyMap()))
+                .thenReturn(PDF_BYTES);
+        when(tempFileStorageService.uploadSalarySlipToTemp(EMP_ID, MONTH, YEAR, PDF_BYTES))
+                .thenReturn("temp/salary-slips/EMP001.pdf");
+        when(salarySlipRepository.save(any(SalarySlip.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        SalarySlip result = service.generateSalary(EMP_ID, MONTH, YEAR);
+
+        assertEquals(23, result.getAbsentDays());
+        assertMoney("45000.00", result.getDeduction());      // capped at gross
+        assertMoney("0.00", result.getNetSalary());          // not negative
+    }
 }

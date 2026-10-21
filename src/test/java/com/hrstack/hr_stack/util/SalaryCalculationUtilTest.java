@@ -142,6 +142,14 @@ class SalaryCalculationUtilTest {
             assertMoney(expected,
                     SalaryCalculationUtil.calculateAbsentDeduction(bd(gross), working, absent));
         }
+        @Test
+        @DisplayName("is capped at gross when rounding would exceed it (full-month absence)")
+        void cappedAtGross() {
+            // 2142.86 x 21 = 45000.06 without the cap
+            assertMoney("45000.00",
+                    SalaryCalculationUtil.calculateAbsentDeduction(bd("45000.00"), 21, 21));
+        }
+
     }
 
     // ---------- PF ----------
