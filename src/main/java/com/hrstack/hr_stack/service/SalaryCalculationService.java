@@ -138,7 +138,7 @@ public class SalaryCalculationService {
                 SalaryCalculationUtil.calculateTotalDeductions(
                         absentDeduction,
                         pfDeduction
-                );
+                ).min(grossSalary);
 
         BigDecimal netSalary =
                 SalaryCalculationUtil.calculateNetSalary(

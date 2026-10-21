@@ -100,7 +100,8 @@ public final class SalaryCalculationUtil {
 
         return dailySalary
                 .multiply(BigDecimal.valueOf(absentDays))
-                .setScale(2, RoundingMode.HALF_UP);
+                .setScale(2, RoundingMode.HALF_UP)
+                .min(grossSalary);
     }
 
     public static BigDecimal calculatePf(
