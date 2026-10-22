@@ -85,7 +85,7 @@ class SalaryCalculationServiceTest {
         Employee e = new Employee();
         e.setId(EMPLOYEE_UUID);
         e.setEmpId(EMP_ID);
-        e.setFirstName("Purvesh");
+        e.setFirstName("testing");
         e.setLastName("Test");
         return e;
     }

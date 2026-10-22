@@ -79,7 +79,7 @@ class QrAttendanceServiceTest {
     }
 
     private static Employee activeEmployee() {
-        Employee e = new Employee(EMPLOYEE_ID, "Purvesh", "Test", EMP_EMAIL,
+        Employee e = new Employee(EMPLOYEE_ID, "testing", "Test", EMP_EMAIL,
                 "9999999999", "password", "EMPLOYEE");
         e.setEmpId(EMP_ID);
         e.setStatus("ACTIVE");

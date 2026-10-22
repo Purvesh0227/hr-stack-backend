@@ -68,7 +68,7 @@ class LoginOtpServiceTest {
     // ---------- helpers ----------
 
     private static Employee employee() {
-        return new Employee(EMPLOYEE_ID, "Purvesh", "Test", EMAIL,
+        return new Employee(EMPLOYEE_ID, "testing", "Test", EMAIL,
                 "9999999999", "password", "EMPLOYEE");
     }
 

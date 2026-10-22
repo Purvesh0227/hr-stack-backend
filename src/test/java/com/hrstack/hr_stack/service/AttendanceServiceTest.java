@@ -59,7 +59,7 @@ class AttendanceServiceTest {
     private AttendanceService service;
 
     private static Employee employee(String role) {
-        Employee e = new Employee(EMPLOYEE_ID, "Purvesh", "Test", EMAIL,
+        Employee e = new Employee(EMPLOYEE_ID, "testing", "Test", EMAIL,
                 "9999999999", "password", role);
         e.setEmpId(EMP_ID);
         return e;
