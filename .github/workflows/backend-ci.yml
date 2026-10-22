@@ -5,7 +5,8 @@ on:
   push:
   pull_request:
     branches:
-      - main
+      - master
+      - prod
 
 permissions:
   contents: read
