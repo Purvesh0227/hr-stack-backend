@@ -97,8 +97,34 @@ public class SecurityConfig {
                                 "/public/attendance-qr/**"
                         ).permitAll()
 
+                        // =========================================================
+                        // APP RELEASES (Must be ordered carefully)
+                        // =========================================================
 
-                        // Admin only
+                        // 1. Public: Read only released versions
+                        .requestMatchers("/employee/app-releases/public").permitAll()
+
+                        // 2. Admin only: CRUD and Admin View
+                        .requestMatchers("/employee/app-releases/admin").hasRole("ADMIN")
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.POST, "/employee/app-releases"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.PUT, "/employee/app-releases/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.DELETE, "/employee/app-releases/**"
+                        ).hasRole("ADMIN")
+
+                        // 3. Admin + Employee: General read access
+                        .requestMatchers("/employee/app-releases").hasAnyRole("ADMIN", "EMPLOYEE")
+                        .requestMatchers("/employee/app-releases/{id}/download").hasAnyRole("ADMIN", "EMPLOYEE")
+
+
+                        // =========================================================
+                        // OTHER ADMIN ONLY APIs
+                        // =========================================================
+
                         .requestMatchers(
                                 "/employee/createAdmin",
                                 "/employee/createotp",
@@ -108,12 +134,17 @@ public class SecurityConfig {
                                 "/employee/attendance/qr/sessions/**"
                         ).hasRole("ADMIN")
 
-                        // Admin + Employee
+
+                        // =========================================================
+                        // ATTENDANCE (Admin + Employee)
+                        // =========================================================
+
                         .requestMatchers(
                                 "/employee/attendance",
                                 "/employee/attendance/view",
                                 "/employee/attendance/qr/mark"
                         ).hasAnyRole("ADMIN", "EMPLOYEE")
+
 
                         // All remaining APIs
                         .anyRequest().authenticated()
