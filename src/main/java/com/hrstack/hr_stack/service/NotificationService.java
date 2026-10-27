@@ -1,6 +1,5 @@
 package com.hrstack.hr_stack.service;
 
-import com.hrstack.hr_stack.dto.AttendanceOtpSendStatus;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +15,6 @@ public class NotificationService {
     private final EmailService emailService;
     private final EmployeeRepository employeeRepository;
 
-
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
@@ -29,56 +27,33 @@ public class NotificationService {
     }
 
 
-    public AttendanceOtpSendStatus broadcastAttendanceOtp(String otp) {
+    // =========================================================
+    // ATTENDANCE OTP (Now fully asynchronous)
+    // =========================================================
+
+    @Async("taskExecutor")
+    public void broadcastAttendanceOtp(String otp) {
 
         List<Employee> employees =
                 employeeRepository.findByStatusIgnoreCase("ACTIVE");
 
-        int successful = 0;
-        int failed = 0;
-
         for (Employee employee : employees) {
-
-            System.out.println(
-                    "Sending attendance OTP to: "
-                            + employee.getEmail()
-                            + " | Status: "
-                            + employee.getStatus()
-                            + " | Role: "
-                            + employee.getRole()
-            );
 
             try {
                 sendAttendanceOtp(employee, otp);
-                successful++;
-
-                System.out.println(
-                        "Attendance OTP sent successfully to: "
-                                + employee.getEmail()
-                );
-
             } catch (Exception e) {
-                failed++;
-
                 System.err.println(
                         "Failed to send attendance OTP to: "
                                 + employee.getEmail()
                 );
-
                 e.printStackTrace();
             }
         }
-
-        return new AttendanceOtpSendStatus(
-                employees.size(),
-                successful,
-                failed
-        );
     }
 
 
-    @Async
-    private void sendAttendanceOtp(
+    @Async("taskExecutor")
+    public void sendAttendanceOtp(
             Employee employee,
             String otp) {
 
@@ -91,18 +66,9 @@ public class NotificationService {
                 frontendUrl + "attendance";
 
         htmlBody = htmlBody
-                .replace(
-                        "{{name}}",
-                        employee.getFirstName()
-                )
-                .replace(
-                        "{{otp}}",
-                        otp
-                )
-                .replace(
-                        "{{attendanceUrl}}",
-                        attendanceUrl
-                );
+                .replace("{{name}}", employee.getFirstName())
+                .replace("{{otp}}", otp)
+                .replace("{{attendanceUrl}}", attendanceUrl);
 
         emailService.sendHtmlEmail(
                 employee.getEmail(),
@@ -112,15 +78,13 @@ public class NotificationService {
     }
 
 
-    // Document verification email
-    @Async
+    // =========================================================
+    // DOCUMENT VERIFICATION
+    // =========================================================
+
+    @Async("taskExecutor")
     public void sendDocumentVerificationRequest(
             Employee employee) {
-
-        System.out.println(
-                "DOCUMENT EMAIL: Preparing email for "
-                        + employee.getEmail()
-        );
 
         String htmlBody =
                 emailService.loadTemplate(
@@ -131,19 +95,8 @@ public class NotificationService {
                 frontendUrl + "/";
 
         htmlBody = htmlBody
-                .replace(
-                        "{{name}}",
-                        employee.getFirstName()
-                )
-                .replace(
-                        "{{documentsUrl}}",
-                        documentsUrl
-                );
-
-        System.out.println(
-                "DOCUMENT EMAIL: Template loaded, sending email to "
-                        + employee.getEmail()
-        );
+                .replace("{{name}}", employee.getFirstName())
+                .replace("{{documentsUrl}}", documentsUrl);
 
         emailService.sendHtmlEmail(
                 employee.getEmail(),
@@ -153,8 +106,11 @@ public class NotificationService {
     }
 
 
+    // =========================================================
+    // PASSWORD RESET
+    // =========================================================
 
-    @Async
+    @Async("taskExecutor")
     public void sendPasswordResetOtp(Employee employee, String otp) {
         String html = emailService
                 .loadTemplate("templates/email/password-reset-otp.html")
@@ -162,11 +118,15 @@ public class NotificationService {
                 .replace("{{otp}}", otp);
 
         emailService.sendHtmlEmail(
-                employee.getEmail(),"HR-Stack Password Reset OTP",html);
+                employee.getEmail(), "HR-Stack Password Reset OTP", html);
     }
 
 
-    @Async
+    // =========================================================
+    // LOGIN OTP
+    // =========================================================
+
+    @Async("taskExecutor")
     public void sendLoginOtp(Employee employee, String otp){
         String html = emailService
                 .loadTemplate("templates/email/login-otp.html")
@@ -178,7 +138,11 @@ public class NotificationService {
     }
 
 
-    @Async
+    // =========================================================
+    // EMAIL VERIFICATION
+    // =========================================================
+
+    @Async("taskExecutor")
     public void sendEmailVerificationOtp(String email, String otp) {
         String html = emailService
                 .loadTemplate("templates/email/email-verification-otp.html")
@@ -188,7 +152,8 @@ public class NotificationService {
                 email, "HR-Stack Email Verification OTP", html);
     }
 
-    @Async
+
+    @Async("taskExecutor")
     public void sendEmailVerificationLink(
             String email,
             String verificationUrl) {
