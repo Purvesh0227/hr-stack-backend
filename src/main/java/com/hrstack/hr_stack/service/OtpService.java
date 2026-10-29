@@ -1,6 +1,5 @@
 package com.hrstack.hr_stack.service;
 
-import com.hrstack.hr_stack.dto.AttendanceOtpSendStatus;
 import com.hrstack.hr_stack.dto.OtpResponse;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.Otp;
@@ -124,18 +123,9 @@ public class OtpService {
                 otpRepository.save(otp);
 
         // Send original OTP to active employees
-        AttendanceOtpSendStatus sendStatus =
-                notificationService.broadcastAttendanceOtp(
-                        otpValue
-                );
+        notificationService.broadcastAttendanceOtp(otpValue);
 
-        /*
-         * Create in-app notifications for active employees.
-         *
-         * IMPORTANT:
-         * The actual OTP is NOT stored in the notification.
-         * Employees receive the OTP through email.
-         */
+
         createAttendanceNotifications(department);
 
         // Return OTP metadata to authorized admin frontend

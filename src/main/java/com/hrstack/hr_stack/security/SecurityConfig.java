@@ -76,6 +76,24 @@ public class SecurityConfig {
                                 "/health"
                         ).permitAll()
 
+                        // Frontend Static Resources (React)
+
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/assets/**",
+                                "/icons/**",
+                                "/manifest.webmanifest",
+                                "/registerSW.js",
+                                "/sw.js",
+                                "/*.css",
+                                "/*.js",
+                                "/*.ico",
+                                "/*.png",
+                                "/*.svg"
+                        ).permitAll()
+
+
                         // Public APIs
                         .requestMatchers(
                                 "/employee/register",
