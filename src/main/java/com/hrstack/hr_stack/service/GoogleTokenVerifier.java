@@ -22,12 +22,15 @@ public class GoogleTokenVerifier {
     private static final String ISSUER_2 = "accounts.google.com";
 
     private final String googleClientId;
+    private final String googleDesktopClientId;
     private final JwtConsumer jwtConsumer;   // built once, Google keys are cached
 
     public GoogleTokenVerifier(
-            @Value("${google.client-id:}") String googleClientId) {
+            @Value("${google.client-id:}") String googleClientId,
+            @Value("${google.desktop-client-id:}") String googleDesktopClientId) {
 
         this.googleClientId = googleClientId;
+        this.googleDesktopClientId = googleDesktopClientId;
 
         HttpsJwks jwks =
                 new HttpsJwks("https://www.googleapis.com/oauth2/v3/certs");
@@ -37,7 +40,7 @@ public class GoogleTokenVerifier {
                 .setRequireSubject()
                 .setAllowedClockSkewInSeconds(30)
                 .setExpectedIssuer(true, null)             // checked below (2 valid forms)
-                .setExpectedAudience(true, googleClientId) // token must be for YOUR app
+                .setExpectedAudience(true, googleClientId, googleDesktopClientId) // token must be for YOUR app
                 .setVerificationKeyResolver(
                         new HttpsJwksVerificationKeyResolver(jwks))
                 .setJwsAlgorithmConstraints(
