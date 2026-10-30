@@ -11,6 +11,7 @@ public class AppReleaseDtos {
             String releaseNotes,
             LocalDate releaseDate,
             String status,
+            String platform,
             String downloadUrl
     ) {}
 
@@ -18,6 +19,7 @@ public class AppReleaseDtos {
             String version,
             String releaseNotes,
             LocalDate releaseDate,
-            String status
-    ) {}
+            String status,
+            String platform
+            ) {}
 }

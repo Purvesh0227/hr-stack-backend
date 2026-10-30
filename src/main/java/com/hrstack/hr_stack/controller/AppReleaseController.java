@@ -26,13 +26,15 @@ public class AppReleaseController {
 
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AppReleaseResponse>> getAdminReleases() {
-        return ResponseEntity.ok(service.getAllForAdmin());
+    public ResponseEntity<List<AppReleaseResponse>> getAdminReleases(
+            @RequestParam(required = false) String platform) {
+        return ResponseEntity.ok(service.getAllForAdmin(platform));
     }
 
     @GetMapping("/public")
-    public ResponseEntity<List<AppReleaseResponse>> getPublicReleases() {
-        return ResponseEntity.ok(service.getReleasedForEmployee());
+    public ResponseEntity<List<AppReleaseResponse>> getPublicReleases(
+            @RequestParam(required = false) String platform) {
+        return ResponseEntity.ok(service.getReleasedForEmployee(platform));
     }
 
     @PostMapping

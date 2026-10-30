@@ -11,4 +11,8 @@ import java.util.UUID;
 public interface AppReleaseRepository extends JpaRepository<AppRelease, UUID> {
     List<AppRelease> findAllByOrderByReleaseDateDesc();
     List<AppRelease> findByStatusOrderByReleaseDateDesc(String status);
+
+    List<AppRelease> findByPlatformOrderByReleaseDateDesc(String platform);
+
+    List<AppRelease> findByStatusAndPlatformOrderByReleaseDateDesc(String status, String platform);
 }
