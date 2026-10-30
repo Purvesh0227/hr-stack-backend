@@ -24,6 +24,9 @@ public class AppRelease {
     @Column(nullable = false, length = 20)
     private String status = "DRAFT";
 
+    @Column(nullable = false, length = 20)
+    private String platform = "ANDROID";
+
     @Column(name = "download_url", nullable = false, length = 500)
     private String downloadUrl;
 
@@ -58,4 +61,12 @@ public class AppRelease {
 
     public Long getUpdatedOn() { return updatedOn; }
     public void setUpdatedOn(Long updatedOn) { this.updatedOn = updatedOn; }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
 }

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -34,18 +35,46 @@ class AppReleaseControllerTest {
 
     private final UUID RELEASE_ID = UUID.randomUUID();
     private final AppReleaseResponse mockResponse = new AppReleaseResponse(
-            RELEASE_ID, "1.0.0", "Notes", LocalDate.now(), "RELEASED", "http://github.com"
+            RELEASE_ID, "1.0.0", "Notes", LocalDate.now(),
+            "RELEASED", "ANDROID", "http://github.com"
     );
 
     @Test
     @DisplayName("Employee can GET the public list (200)")
     void employeeCanGetPublicList() throws Exception {
-        when(service.getReleasedForEmployee()).thenReturn(List.of(mockResponse));
+        when(service.getReleasedForEmployee(any())).thenReturn(List.of(mockResponse));
 
         mockMvc.perform(get("/employee/app-releases/public")
                         .with(user("emp@example.com").roles("EMPLOYEE")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].version").value("1.0.0"));
+                .andExpect(jsonPath("$[0].version").value("1.0.0"))
+                .andExpect(jsonPath("$[0].platform").value("ANDROID"));
+    }
+
+    @Test
+    @DisplayName("Public list accepts ?platform=WINDOWS and passes it to the service")
+    void publicList_platformParam_passedToService() throws Exception {
+        when(service.getReleasedForEmployee("WINDOWS")).thenReturn(List.of());
+
+        mockMvc.perform(get("/employee/app-releases/public")
+                        .param("platform", "WINDOWS")
+                        .with(user("emp@example.com").roles("EMPLOYEE")))
+                .andExpect(status().isOk());
+
+        verify(service).getReleasedForEmployee("WINDOWS");
+    }
+
+    @Test
+    @DisplayName("Admin GET /admin accepts ?platform= and passes it to the service")
+    void adminList_platformParam_passedToService() throws Exception {
+        when(service.getAllForAdmin("WINDOWS")).thenReturn(List.of());
+
+        mockMvc.perform(get("/employee/app-releases/admin")
+                        .param("platform", "WINDOWS")
+                        .with(user("admin@example.com").roles("ADMIN")))
+                .andExpect(status().isOk());
+
+        verify(service).getAllForAdmin("WINDOWS");
     }
 
     @Test
@@ -78,11 +107,13 @@ class AppReleaseControllerTest {
                                   "version": "1.0.0",
                                   "releaseNotes": "Notes",
                                   "releaseDate": "2026-10-27",
-                                  "status": "RELEASED"
+                                  "status": "RELEASED",
+                                  "platform": "ANDROID"
                                 }
                                 """)
                         .with(user("admin@example.com").roles("ADMIN")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.downloadUrl").exists());
+                .andExpect(jsonPath("$.downloadUrl").exists())
+                .andExpect(jsonPath("$.platform").value("ANDROID"));
     }
 }
