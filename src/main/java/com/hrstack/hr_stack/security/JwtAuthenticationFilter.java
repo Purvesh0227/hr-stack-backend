@@ -6,6 +6,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,58 +37,52 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authHeader =
-                request.getHeader("Authorization");
+        try {
+            String authHeader = request.getHeader("Authorization");
 
-        // No token
-        if (authHeader == null ||
-                !authHeader.startsWith("Bearer ")) {
+            // No token
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            String token = authHeader.substring(7);
+
+
+            if (!jwtService.isTokenValid(token)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            String email = jwtService.extractEmail(token);
+
+            Employee employee = employeeRepository.findByEmail(email).orElse(null);
+
+
+            if (employee == null || employee.getRole() == null) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            String role = employee.getRole();
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            email,
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
+                    );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+
+            MDC.put("userEmail", email);
 
             filterChain.doFilter(request, response);
-            return;
+
+        } finally {
+
+            MDC.remove("userEmail");
         }
-
-        String token = authHeader.substring(7);
-
-        // Invalid / expired token, or a password-reset token
-        if (!jwtService.isTokenValid(token)) {
-
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String email = jwtService.extractEmail(token);
-
-        Employee employee =
-                employeeRepository
-                        .findByEmail(email)
-                        .orElse(null);
-
-        // Unknown user, or user without a role -> stay unauthenticated
-        if (employee == null || employee.getRole() == null) {
-
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String role = employee.getRole();
-
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                        email,
-                        null,
-                        List.of(
-                                new SimpleGrantedAuthority(
-                                        "ROLE_" +
-                                                role.toUpperCase()
-                                )
-                        )
-                );
-
-        SecurityContextHolder
-                .getContext()
-                .setAuthentication(authentication);
-
-        filterChain.doFilter(request, response);
     }
 }

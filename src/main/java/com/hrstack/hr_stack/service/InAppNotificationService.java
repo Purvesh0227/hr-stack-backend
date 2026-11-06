@@ -22,8 +22,7 @@ import java.util.UUID;
 public class InAppNotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final NotificationSubscriptionRepository
-            notificationSubscriptionRepository;
+    private final NotificationSubscriptionRepository notificationSubscriptionRepository;
     private final EmployeeRepository employeeRepository;
     private final WebPushService webPushService;
     private final ObjectMapper objectMapper;
@@ -33,15 +32,13 @@ public class InAppNotificationService {
 
     public InAppNotificationService(
             NotificationRepository notificationRepository,
-            NotificationSubscriptionRepository
-                    notificationSubscriptionRepository,
+            NotificationSubscriptionRepository notificationSubscriptionRepository,
             EmployeeRepository employeeRepository,
             WebPushService webPushService,
             ObjectMapper objectMapper) {
 
         this.notificationRepository = notificationRepository;
-        this.notificationSubscriptionRepository =
-                notificationSubscriptionRepository;
+        this.notificationSubscriptionRepository = notificationSubscriptionRepository;
         this.employeeRepository = employeeRepository;
         this.webPushService = webPushService;
         this.objectMapper = objectMapper;
@@ -67,15 +64,9 @@ public class InAppNotificationService {
         notification.setRead(false);
         notification.setCreatedOn(System.currentTimeMillis());
 
-        Notification savedNotification =
-                notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.save(notification);
 
-
-        sendWebPushNotifications(
-                employee,
-                eventType,
-                message
-        );
+        sendWebPushNotifications(employee, eventType, message);
 
         return savedNotification;
     }
@@ -86,8 +77,7 @@ public class InAppNotificationService {
             String message) {
 
         List<NotificationSubscription> subscriptions =
-                notificationSubscriptionRepository
-                        .findByEmployee(employee);
+                notificationSubscriptionRepository.findByEmployee(employee);
 
         if (subscriptions.isEmpty()) {
             return;
@@ -96,80 +86,47 @@ public class InAppNotificationService {
         String payload;
 
         try {
+            Map<String, String> payloadData = new HashMap<>();
+            payloadData.put("eventType", eventType);
+            payloadData.put("message", message);
+            payloadData.put("url", buildClickUrl(eventType));
 
-            Map<String, String> payloadData =
-                    new HashMap<>();
-
-            payloadData.put(
-                    "eventType",
-                    eventType
-            );
-
-            payloadData.put(
-                    "message",
-                    message
-            );
-//notifications
-            payloadData.put(
-                    "url",
-                    buildClickUrl(eventType)
-            );
-
-            payload =
-                    objectMapper.writeValueAsString(
-                            payloadData
-                    );
-
+            payload = objectMapper.writeValueAsString(payloadData);
         } catch (Exception exception) {
-
-            System.err.println(
-                    "Unable to create Web Push payload: "
-                            + exception.getMessage()
-            );
-
+            System.err.println("Unable to create Web Push payload: " + exception.getMessage());
             return;
         }
 
-        for (NotificationSubscription subscription
-                : subscriptions) {
-
+        for (NotificationSubscription subscription : subscriptions) {
             try {
-
                 webPushService.sendPush(
                         subscription.getEndpoint(),
                         subscription.getP256dh(),
                         subscription.getAuth(),
                         payload
                 );
-
             } catch (Exception exception) {
+                String errorMsg = exception.getMessage();
+                System.err.println("Unable to send Web Push notification: " + errorMsg);
 
-                /*
-                 * Push failure must not break the
-                 * notification database flow.
-                 */
-                System.err.println(
-                        "Unable to send Web Push notification: "
-                                + exception.getMessage()
-                );
+                // 🚀 DB CLEANUP LOGIC: If 401 (Unauthorized) or 410 (Gone), delete the dead subscription
+                if (errorMsg != null && (errorMsg.contains("401") || errorMsg.contains("410"))) {
+                    System.err.println("Deleting expired subscription: " + subscription.getEndpoint());
+                    notificationSubscriptionRepository.delete(subscription);
+                }
             }
         }
     }
 
-
     private String buildClickUrl(String eventType) {
-
-        String base = frontendUrl.endsWith("/")
-                ? frontendUrl
-                : frontendUrl + "/";
+        String base = frontendUrl.endsWith("/") ? frontendUrl : frontendUrl + "/";
 
         String path = switch (eventType == null ? "" : eventType) {
-            case "NEW_EMPLOYEE_REGISTERED",
-                 "DOCUMENTS_UPLOADED" -> "employees";
+            case "NEW_EMPLOYEE_REGISTERED", "DOCUMENTS_UPLOADED" -> "employees";
             case "ATTENDANCE" -> "attendance";
-            case "SALARY_SLIP_GENERATED",
-                 "SALARY_SLIP_REPLACED" -> "finance";
+            case "SALARY_SLIP_GENERATED", "SALARY_SLIP_REPLACED" -> "finance";
             case "ANNOUNCEMENT" -> "announcements";
+            case "SUPPORT_TICKET" -> "support";
             default -> "";
         };
 
@@ -177,100 +134,47 @@ public class InAppNotificationService {
     }
 
     @Transactional(readOnly = true)
-    public NotificationResponse getNotifications(
-            String email,
-            NotificationFilter filter) {
-
+    public NotificationResponse getNotifications(String email, NotificationFilter filter) {
         Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
 
         List<Notification> notifications;
 
         switch (filter) {
-
-            case READ:
-                notifications =
-                        notificationRepository
-                                .findByEmployeeAndReadTrueOrderByCreatedOnDesc(
-                                        employee
-                                );
-                break;
-
-            case UNREAD:
-                notifications =
-                        notificationRepository
-                                .findByEmployeeAndReadFalseOrderByCreatedOnDesc(
-                                        employee
-                                );
-                break;
-
-            case ALL:
-            default:
-                notifications =
-                        notificationRepository
-                                .findByEmployeeOrderByCreatedOnDesc(
-                                        employee
-                                );
-                break;
+            case READ -> notifications = notificationRepository.findByEmployeeAndReadTrueOrderByCreatedOnDesc(employee);
+            case UNREAD -> notifications = notificationRepository.findByEmployeeAndReadFalseOrderByCreatedOnDesc(employee);
+            default -> notifications = notificationRepository.findByEmployeeOrderByCreatedOnDesc(employee);
         }
 
-        long unreadCount =
-                notificationRepository
-                        .countByEmployeeAndReadFalse(employee);
+        long unreadCount = notificationRepository.countByEmployeeAndReadFalse(employee);
 
-        return new NotificationResponse(
-                notifications,
-                unreadCount
-        );
+        return new NotificationResponse(notifications, unreadCount);
     }
 
     @Transactional
-    public void markAsRead(
-            String email,
-            UUID notificationId) {
-
+    public void markAsRead(String email, UUID notificationId) {
         Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
 
-        Notification notification =
-                notificationRepository.findById(notificationId)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Notification not found"
-                                ));
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
 
-        if (!notification.getEmployee().getId()
-                .equals(employee.getId())) {
-
-            throw new RuntimeException(
-                    "Notification does not belong to employee"
-            );
+        if (!notification.getEmployee().getId().equals(employee.getId())) {
+            throw new RuntimeException("Notification does not belong to employee");
         }
 
         notification.setRead(true);
-
         notificationRepository.save(notification);
     }
 
     @Transactional
     public void markAllAsRead(String email) {
-
         Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
 
-        List<Notification> notifications =
-                notificationRepository
-                        .findByEmployeeAndReadFalseOrderByCreatedOnDesc(
-                                employee
-                        );
+        List<Notification> notifications = notificationRepository.findByEmployeeAndReadFalseOrderByCreatedOnDesc(employee);
 
-        notifications.forEach(
-                notification -> notification.setRead(true)
-        );
-
+        notifications.forEach(notification -> notification.setRead(true));
         notificationRepository.saveAll(notifications);
     }
 }
