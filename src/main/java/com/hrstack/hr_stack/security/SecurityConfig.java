@@ -115,9 +115,6 @@ public class SecurityConfig {
                                 "/public/attendance-qr/**"
                         ).permitAll()
 
-                        // =========================================================
-                        // APP RELEASES (Must be ordered carefully)
-                        // =========================================================
 
                         // 1. Public: Read only released versions
                         .requestMatchers("/employee/app-releases/public").permitAll()
@@ -138,10 +135,8 @@ public class SecurityConfig {
                         .requestMatchers("/employee/app-releases").hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers("/employee/app-releases/{id}/download").hasAnyRole("ADMIN", "EMPLOYEE")
 
-
-                        // =========================================================
-                        // OTHER ADMIN ONLY APIs
-                        // =========================================================
+                        // Support Tickets (Admin + Employee)
+                        .requestMatchers("/employee/support/**").hasAnyRole("ADMIN", "EMPLOYEE")
 
                         .requestMatchers(
                                 "/employee/createAdmin",

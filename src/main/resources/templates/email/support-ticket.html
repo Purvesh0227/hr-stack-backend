@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>New Support Ticket</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: Arial, Helvetica, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; padding: 40px 15px;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+
+
+                <tr>
+                    <td style="background: linear-gradient(135deg, #2563eb, #4f46e5); padding: 28px 35px; text-align: center;">
+                        <div style="color: #ffffff; font-size: 28px; font-weight: bold; letter-spacing: 1px;">
+                            HR-Stack
+                        </div>
+                        <div style="color: #dbeafe; font-size: 14px; margin-top: 6px;">
+                            Support Ticket Notification
+                        </div>
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td style="padding: 35px;">
+                        <h2 style="margin: 0 0 15px 0; color: #1e293b; font-size: 22px;">
+                            New Support Ticket Raised
+                        </h2>
+
+                        <p style="color: #475569; font-size: 15px; line-height: 1.6;">
+                            A new support ticket has been submitted by an employee. Please review the details below and log in to the Admin Dashboard to resolve it.
+                        </p>
+
+                        <!-- Ticket Details Box -->
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+                            <tr>
+                                <td style="padding: 20px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="padding-bottom: 10px; color: #64748b; font-size: 13px; font-weight: bold; text-transform: uppercase;">Employee Name</td>
+                                            <td style="padding-bottom: 10px; color: #1e293b; font-size: 14px; text-align: right;">{{employeeName}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding-bottom: 10px; color: #64748b; font-size: 13px; font-weight: bold; text-transform: uppercase;">Email</td>
+                                            <td style="padding-bottom: 10px; color: #1e293b; font-size: 14px; text-align: right;">{{employeeEmail}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding-bottom: 10px; color: #64748b; font-size: 13px; font-weight: bold; text-transform: uppercase;">Mobile</td>
+                                            <td style="padding-bottom: 10px; color: #1e293b; font-size: 14px; text-align: right;">{{employeeMobile}}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding-bottom: 10px; color: #64748b; font-size: 13px; font-weight: bold; text-transform: uppercase;">Priority</td>
+                                            <td style="padding-bottom: 10px; font-size: 14px; font-weight: bold; text-align: right; color: {{priorityColor}};">{{priority}}</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="color: #64748b; font-size: 13px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px;">Subject</p>
+                        <p style="color: #1e293b; font-size: 16px; font-weight: bold; margin-top: 0;">{{subject}}</p>
+
+                        <p style="color: #64748b; font-size: 13px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px;">Message</p>
+                        <p style="color: #475569; font-size: 15px; line-height: 1.6; margin-top: 0; background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #2563eb;">
+                            {{message}}
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 35px; text-align: center;">
+                        <div style="color: #475569; font-size: 13px; font-weight: bold;">HR-Stack</div>
+                        <div style="color: #94a3b8; font-size: 11px; margin-top: 6px;">Automated Support Notification</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
