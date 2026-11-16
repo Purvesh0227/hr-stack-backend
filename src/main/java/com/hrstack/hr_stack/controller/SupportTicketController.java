@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.hrstack.hr_stack.dto.SupportTicketDtos.UploadUrlResponse;
 
 import java.util.Map;
 import java.util.UUID;
@@ -78,5 +79,22 @@ public class SupportTicketController {
         return ResponseEntity.ok(Map.of(
                 "message", "Ticket status updated to " + newStatus
         ));
+    }
+
+    @GetMapping("/upload-url")
+    public ResponseEntity<UploadUrlResponse> generateUploadUrl(
+            @RequestParam String fileName,
+            @RequestParam String contentType) {
+        return ResponseEntity.ok(supportTicketService.generateUploadUrl(fileName, contentType));
+    }
+
+    @GetMapping("/admin/{ticketId}/attachments/{attachmentId}/view-url")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, String>> getAttachmentViewUrl(
+            @PathVariable UUID ticketId,
+            @PathVariable UUID attachmentId) {
+
+        String url = supportTicketService.getAttachmentViewUrl(ticketId, attachmentId);
+        return ResponseEntity.ok(Map.of("url", url));
     }
 }

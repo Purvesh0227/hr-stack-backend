@@ -4,9 +4,17 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
 import java.util.UUID;
 
 public class SupportTicketDtos {
+
+    public record AttachmentInput(
+            String objectKey,
+            String fileName,
+            String contentType,
+            long size
+    ) {}
 
 //What the Employee sends to the backend
     public record CreateTicketRequest(
@@ -20,7 +28,16 @@ public class SupportTicketDtos {
 
             @NotBlank(message = "Priority is required")
             @Pattern(regexp = "LOW|MEDIUM|HIGH|URGENT", message = "Invalid priority level")
-            String priority
+            String priority,
+
+             List<AttachmentInput>attachments
+    ) {}
+
+    public record AttachmentResponse(
+            UUID id,
+            String fileName,
+            String contentType,
+            long size
     ) {}
 
 //What the Admin sees on the Dashboard
@@ -34,6 +51,9 @@ public class SupportTicketDtos {
             String priority,
             String status,
             Long createdOn,
-            Long resolvedOn
+            Long resolvedOn,
+            List<AttachmentResponse> attachments
     ) {}
+
+    public record UploadUrlResponse(String uploadUrl, String objectKey) {}
 }
