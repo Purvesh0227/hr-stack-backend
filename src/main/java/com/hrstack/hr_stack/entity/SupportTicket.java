@@ -2,6 +2,7 @@ package com.hrstack.hr_stack.entity;
 
 import jakarta.persistence.*;
 import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "support_ticket")
@@ -41,10 +42,16 @@ public class SupportTicket {
     @Column(name = "resolved_on")
     private Long resolvedOn;
 
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<SupportTicketAttachment> attachments = new ArrayList<>();
+
+    public List<SupportTicketAttachment> getAttachments() { return attachments; }
+    public void setAttachments(List<SupportTicketAttachment> attachments) { this.attachments = attachments; }
+
     public SupportTicket() {
     }
 
-    // --- Getters and Setters ---
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }

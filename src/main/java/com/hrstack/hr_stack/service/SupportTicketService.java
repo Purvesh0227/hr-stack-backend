@@ -1,9 +1,10 @@
 package com.hrstack.hr_stack.service;
 
-import com.hrstack.hr_stack.dto.SupportTicketDtos.CreateTicketRequest;
-import com.hrstack.hr_stack.dto.SupportTicketDtos.TicketResponse;
+import com.hrstack.hr_stack.dto.SupportTicketDtos.*;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.SupportTicket;
+import com.hrstack.hr_stack.entity.SupportTicketAttachment;
+import com.hrstack.hr_stack.exception.BadRequestException;
 import com.hrstack.hr_stack.exception.ResourceNotFoundException;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
 import com.hrstack.hr_stack.repository.SupportTicketRepository;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,19 +25,58 @@ public class SupportTicketService {
     private final EmployeeRepository employeeRepository;
     private final EmailService emailService;
     private final InAppNotificationService inAppNotificationService;
+    private final MinioStorageService storage;
 
     @Value("${app.support.email}")
     private String supportEmail;
+
+    @Value("${s3.temp-bucket}")
+    private String tempBucket;
+
+    @Value("${s3.permanent-bucket}")
+    private String permanentBucket;
+
+    private static final String KEY_PREFIX = "support-tickets/";
+    private static final int MAX_FILES = 3;
+    private static final long MAX_FILE_BYTES = 5L * 1024 * 1024; // 5 MB
+
+    // Allowed MIME types
+    private static final List<String> ALLOWED_TYPES = List.of(
+            "image/png",
+            "image/jpeg",
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
+            "video/mp4"
+    );
 
     public SupportTicketService(
             SupportTicketRepository ticketRepository,
             EmployeeRepository employeeRepository,
             EmailService emailService,
-            InAppNotificationService inAppNotificationService) {
+            InAppNotificationService inAppNotificationService,
+            MinioStorageService storage) {
         this.ticketRepository = ticketRepository;
         this.employeeRepository = employeeRepository;
         this.emailService = emailService;
         this.inAppNotificationService = inAppNotificationService;
+        this.storage = storage;
+    }
+
+    public UploadUrlResponse generateUploadUrl(String fileName, String contentType) {
+        // Validate file type before generating URL
+        if (contentType == null || !ALLOWED_TYPES.contains(contentType.toLowerCase())) {
+            throw new BadRequestException(
+                    "Invalid file format. Only PDF, DOCX, PNG, JPG, or MP4 are allowed. If you need to send other formats, please email support@hrstack.com."
+            );
+        }
+
+        String safeName = fileName.trim().replaceAll("[^a-zA-Z0-9._-]", "_");
+        String objectKey = KEY_PREFIX + UUID.randomUUID() + "/" + safeName;
+
+        return new UploadUrlResponse(
+                storage.getPresignedUploadUrl(tempBucket, objectKey),
+                objectKey
+        );
     }
 
     @Transactional
@@ -53,6 +94,54 @@ public class SupportTicketService {
         ticket.setPriority(request.priority());
         ticket.setStatus("OPEN");
         ticket.setCreatedOn(System.currentTimeMillis());
+
+        // Handle Attachments
+        List<AttachmentInput> files = request.attachments();
+        if (files != null) {
+            if (files.size() > MAX_FILES) {
+                throw new BadRequestException(
+                        "Maximum " + MAX_FILES + " attachments allowed. If you need to send more files, please email support@hrstack.com."
+                );
+            }
+
+            for (AttachmentInput file : files) {
+                // Validate Size
+                if (file.size() <= 0 || file.size() > MAX_FILE_BYTES) {
+                    throw new BadRequestException(
+                            "File is too large. Each file must be under 5 MB. For larger files, please email support@hrstack.com."
+                    );
+                }
+
+                // Validate Type again just to be safe
+                if (file.contentType() == null || !ALLOWED_TYPES.contains(file.contentType().toLowerCase())) {
+                    throw new BadRequestException(
+                            "Invalid file format. Only PDF, DOCX, PNG, JPG, or MP4 are allowed. If you need to send other formats, please email support@hrstack.com."
+                    );
+                }
+
+                // Validate Path (Security)
+                String key = file.objectKey();
+                if (key == null || !key.startsWith(KEY_PREFIX) || key.contains("..")) {
+                    throw new BadRequestException("Invalid attachment path.");
+                }
+
+                // Verify file exists in Temp
+                if (!storage.exists(tempBucket, key)) {
+                    throw new BadRequestException("File not uploaded: " + file.fileName());
+                }
+
+                // Move to Permanent
+                storage.move(tempBucket, key, permanentBucket, key);
+
+                SupportTicketAttachment attachment = new SupportTicketAttachment();
+                attachment.setTicket(ticket);
+                attachment.setObjectKey(key);
+                attachment.setFileName(file.fileName());
+                attachment.setContentType(file.contentType());
+                attachment.setFileSize(file.size());
+                ticket.getAttachments().add(attachment);
+            }
+        }
 
         SupportTicket savedTicket = ticketRepository.save(ticket);
         sendSupportEmail(savedTicket);
@@ -120,13 +209,11 @@ public class SupportTicketService {
 
         if ("RESOLVED".equalsIgnoreCase(newStatus)) {
             ticket.setResolvedOn(System.currentTimeMillis());
-
             inAppNotificationService.createNotification(
                     ticket.getEmployeeId(),
                     "SUPPORT_TICKET",
                     "Your support ticket '" + ticket.getSubject() + "' has been marked as RESOLVED."
             );
-
         } else {
             ticket.setResolvedOn(null);
         }
@@ -135,6 +222,10 @@ public class SupportTicketService {
     }
 
     private TicketResponse mapToResponse(SupportTicket t) {
+        List<AttachmentResponse> attachments = t.getAttachments().stream()
+                .map(a -> new AttachmentResponse(a.getId(), a.getFileName(), a.getContentType(), a.getFileSize()))
+                .toList();
+
         return new TicketResponse(
                 t.getId(),
                 t.getEmployeeName(),
@@ -145,7 +236,20 @@ public class SupportTicketService {
                 t.getPriority(),
                 t.getStatus(),
                 t.getCreatedOn(),
-                t.getResolvedOn()
+                t.getResolvedOn(),
+                attachments
         );
+    }
+
+    public String getAttachmentViewUrl(UUID ticketId, UUID attachmentId) {
+        SupportTicket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+
+        SupportTicketAttachment attachment = ticket.getAttachments().stream()
+                .filter(a -> a.getId().equals(attachmentId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Attachment not found"));
+
+        return storage.getSignedUrl(permanentBucket, attachment.getObjectKey());
     }
 }
