@@ -42,12 +42,17 @@ public class SupportTicket {
     @Column(name = "resolved_on")
     private Long resolvedOn;
 
-
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<SupportTicketAttachment> attachments = new ArrayList<>();
 
     public List<SupportTicketAttachment> getAttachments() { return attachments; }
     public void setAttachments(List<SupportTicketAttachment> attachments) { this.attachments = attachments; }
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<SupportTicketStatusHistory> statusHistory = new ArrayList<>();
+
+    public List<SupportTicketStatusHistory> getStatusHistory() { return statusHistory; }
+    public void setStatusHistory(List<SupportTicketStatusHistory> statusHistory) { this.statusHistory = statusHistory; }
 
     public SupportTicket() {
     }

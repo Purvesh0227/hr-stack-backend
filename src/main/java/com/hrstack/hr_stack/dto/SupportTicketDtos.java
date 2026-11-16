@@ -40,6 +40,11 @@ public class SupportTicketDtos {
             long size
     ) {}
 
+    public record StatusHistoryResponse(
+            String status,
+            Long changedOn
+    ) {}
+
 //What the Admin sees on the Dashboard
     public record TicketResponse(
             UUID id,
@@ -52,7 +57,8 @@ public class SupportTicketDtos {
             String status,
             Long createdOn,
             Long resolvedOn,
-            List<AttachmentResponse> attachments
+            List<AttachmentResponse> attachments,
+            List<StatusHistoryResponse> statusHistory
     ) {}
 
     public record UploadUrlResponse(String uploadUrl, String objectKey) {}

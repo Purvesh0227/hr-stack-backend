@@ -4,6 +4,7 @@ import com.hrstack.hr_stack.dto.SupportTicketDtos.*;
 import com.hrstack.hr_stack.entity.Employee;
 import com.hrstack.hr_stack.entity.SupportTicket;
 import com.hrstack.hr_stack.entity.SupportTicketAttachment;
+import com.hrstack.hr_stack.entity.SupportTicketStatusHistory;
 import com.hrstack.hr_stack.exception.BadRequestException;
 import com.hrstack.hr_stack.exception.ResourceNotFoundException;
 import com.hrstack.hr_stack.repository.EmployeeRepository;
@@ -38,14 +39,13 @@ public class SupportTicketService {
 
     private static final String KEY_PREFIX = "support-tickets/";
     private static final int MAX_FILES = 3;
-    private static final long MAX_FILE_BYTES = 5L * 1024 * 1024; // 5 MB
+    private static final long MAX_FILE_BYTES = 5L * 1024 * 1024;
 
-    // Allowed MIME types
     private static final List<String> ALLOWED_TYPES = List.of(
             "image/png",
             "image/jpeg",
             "application/pdf",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // DOCX
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "video/mp4"
     );
 
@@ -63,7 +63,6 @@ public class SupportTicketService {
     }
 
     public UploadUrlResponse generateUploadUrl(String fileName, String contentType) {
-        // Validate file type before generating URL
         if (contentType == null || !ALLOWED_TYPES.contains(contentType.toLowerCase())) {
             throw new BadRequestException(
                     "Invalid file format. Only PDF, DOCX, PNG, JPG, or MP4 are allowed. If you need to send other formats, please email support@hrstack.com."
@@ -95,7 +94,12 @@ public class SupportTicketService {
         ticket.setStatus("OPEN");
         ticket.setCreatedOn(System.currentTimeMillis());
 
-        // Handle Attachments
+        SupportTicketStatusHistory history = new SupportTicketStatusHistory();
+        history.setTicket(ticket);
+        history.setStatus("OPEN");
+        history.setChangedOn(System.currentTimeMillis());
+        ticket.getStatusHistory().add(history);
+
         List<AttachmentInput> files = request.attachments();
         if (files != null) {
             if (files.size() > MAX_FILES) {
@@ -105,32 +109,27 @@ public class SupportTicketService {
             }
 
             for (AttachmentInput file : files) {
-                // Validate Size
                 if (file.size() <= 0 || file.size() > MAX_FILE_BYTES) {
                     throw new BadRequestException(
                             "File is too large. Each file must be under 5 MB. For larger files, please email support@hrstack.com."
                     );
                 }
 
-                // Validate Type again just to be safe
                 if (file.contentType() == null || !ALLOWED_TYPES.contains(file.contentType().toLowerCase())) {
                     throw new BadRequestException(
                             "Invalid file format. Only PDF, DOCX, PNG, JPG, or MP4 are allowed. If you need to send other formats, please email support@hrstack.com."
                     );
                 }
 
-                // Validate Path (Security)
                 String key = file.objectKey();
                 if (key == null || !key.startsWith(KEY_PREFIX) || key.contains("..")) {
                     throw new BadRequestException("Invalid attachment path.");
                 }
 
-                // Verify file exists in Temp
                 if (!storage.exists(tempBucket, key)) {
                     throw new BadRequestException("File not uploaded: " + file.fileName());
                 }
 
-                // Move to Permanent
                 storage.move(tempBucket, key, permanentBucket, key);
 
                 SupportTicketAttachment attachment = new SupportTicketAttachment();
@@ -207,6 +206,12 @@ public class SupportTicketService {
 
         ticket.setStatus(newStatus.toUpperCase());
 
+        SupportTicketStatusHistory history = new SupportTicketStatusHistory();
+        history.setTicket(ticket);
+        history.setStatus(newStatus.toUpperCase());
+        history.setChangedOn(System.currentTimeMillis());
+        ticket.getStatusHistory().add(history);
+
         if ("RESOLVED".equalsIgnoreCase(newStatus)) {
             ticket.setResolvedOn(System.currentTimeMillis());
             inAppNotificationService.createNotification(
@@ -226,6 +231,11 @@ public class SupportTicketService {
                 .map(a -> new AttachmentResponse(a.getId(), a.getFileName(), a.getContentType(), a.getFileSize()))
                 .toList();
 
+        List<StatusHistoryResponse> history = t.getStatusHistory().stream()
+                .sorted((a, b) -> a.getChangedOn().compareTo(b.getChangedOn()))
+                .map(h -> new StatusHistoryResponse(h.getStatus(), h.getChangedOn()))
+                .toList();
+
         return new TicketResponse(
                 t.getId(),
                 t.getEmployeeName(),
@@ -237,7 +247,8 @@ public class SupportTicketService {
                 t.getStatus(),
                 t.getCreatedOn(),
                 t.getResolvedOn(),
-                attachments
+                attachments,
+                history
         );
     }
 
