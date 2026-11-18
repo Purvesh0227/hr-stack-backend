@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -91,4 +92,16 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
             Pageable pageable);
 
     long countBySessionId(UUID sessionId);
+//for analytics
+    long countByStatusAndMarkedOnBetween(String status, Long from, Long to);
+
+    @Query(value = """
+    SELECT COUNT(DISTINCT a.empId) 
+    FROM Attendance a 
+    JOIN Employee e ON e.empId = a.empId 
+    WHERE e.status = 'ACTIVE' 
+      AND a.status = 'PRESENT' 
+      AND a.markedOn BETWEEN :from AND :to
+""")
+    long countActivePresentBetween(@Param("from") long from, @Param("to") long to);
 }

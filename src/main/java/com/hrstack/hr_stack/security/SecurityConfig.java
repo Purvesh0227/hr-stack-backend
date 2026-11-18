@@ -144,7 +144,8 @@ public class SecurityConfig {
                                 "/employee/*/request-documents",
                                 "/employee/*/activate",
                                 "/employee/attendance/qr/sessions",
-                                "/employee/attendance/qr/sessions/**"
+                                "/employee/attendance/qr/sessions/**",
+                                "/employee/analytics"
                         ).hasRole("ADMIN")
 
 
