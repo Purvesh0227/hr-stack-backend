@@ -16,10 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-
-
-
-
 public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
 
     Optional<Employee> findByEmail(String email);
@@ -72,5 +68,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
                    @Param("linkedOn") Long linkedOn);
 
     boolean existsByMobile(String mobile);
+
+//    for analytics
+
+    long countByStatus(String status);
+    long countByRole(String role);
+    long countByRoleAndStatus(String role, String status);
+    long countByCreatedOnBetween(Long start, Long end);
+    long countByRoleAndCreatedOnBetween(String role, Long start, Long end);
+    List<Employee> findTop5ByRoleOrderByCreatedOnDesc(String role);
+
 
 }

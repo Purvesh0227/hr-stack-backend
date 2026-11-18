@@ -18,4 +18,8 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, UU
 
 // Fetch tickets for a specific employee
     Page<SupportTicket> findByEmployeeIdOrderByCreatedOnDesc(UUID employeeId, Pageable pageable);
+
+//    for analytics
+    long countByStatus(String status);
+    long countByStatusAndPriority(String status, String priority);
 }
